@@ -1,0 +1,11 @@
+# .coveragerc to control coverage.py
+
+[run]
+source = src
+data_file = .coverage/.coverage
+
+[xml]
+output = .coverage/coverage.xml
+
+[lcov]
+output = .coverage/coverage.lcov
