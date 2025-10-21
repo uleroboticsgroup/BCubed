@@ -1,36 +1,29 @@
 # BCubed
-BCubed is a Python package library designed to facilitate traceability in autonomous systems in a cibersecure manner. It allows the creation and utilization of a black box employing blockchain technology. The nomenclature of the system is derived from the term "blockchain-based black box.
+BCubed is a Python library designed to facilitate traceability in autonomous systems in a cibersecure manner. It allows the creation and utilization of a black box employing blockchain technology. The nomenclature of the system is derived from the term "blockchain-based black box.
+
+## :warning: Disclaimer
+This Python library has only been tested in simulated blockchain environments. Using it in other environments is at your own risk. Keep possible charges in mind.
 
 
-## Virtual environment (recommended)
-### Create and activate a virtual enviroment
+## Getting Started
+
+### Create and activate a virtual enviroment (recommended)
 ```
 $ python3 -m venv .venv
 $ source .venv/bin/activate
 ```
 
-
-## Requirements
 ### Install the requirements
 ```
 (.venv) $ pip install -r requirements.txt
 ```
 
-
-## Install BCubed
+### Install BCubed
 ```
 (.venv) $ pip install -e <bcubed_location>
 ```
 
-
-## Tests
-### Run all tests with coverage generation
-```
-(.venv) $ pytest --cov=src --cov-report=lcov --cov-report xml --cov-report term
-```
-
-
-## Uninstall BCubed
+### Uninstall BCubed
 ```
 (.venv) $ pip uninstall bcubed
 ```
