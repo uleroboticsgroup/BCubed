@@ -50,14 +50,22 @@ class GivenALogger (TestCase):
 
         return super().tearDown()
 
-    def test_when_creating_logger_then_its_values_are_default_ones(self):
+    def test_when_getting_data_then_their_values_are_the_default_ones(self):
+        """
+        Given a Logger instance when getting data then their values are the default ones
+        """
+
         log_files_folder = Path(LOG_FILES_FOLDER)
         self.assertTrue(log_files_folder.exists())
 
         self.assertEqual(self.logger.get_log_files_path(), LOG_FILES_FOLDER)
         self.assertEqual(self.logger.get_log_level(), logging.INFO)
 
-    def test_when_creating_logger_and_it_is_run_then_logger_is_ready_to_log(self):
+    def test_when_getting_logger_then_it_is_ready_to_log(self):
+        """
+        Given a Logger instance when getting logger then it is ready to log
+        """
+
         log_files_folder = Path(LOG_FILES_FOLDER)
         self.assertTrue(log_files_folder.exists())
 

@@ -7,7 +7,7 @@ These constants define the field types that all data record types can contain.
 """
 
 
-class CommonDataFieldTypes:
+class CommonDataFieldTypes:  # pylint: disable=too-few-public-methods
     """
     It contains only constants related to common data field types. These constants define the
     types of the fields that all data record type can contain.

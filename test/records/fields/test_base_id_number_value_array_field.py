@@ -118,7 +118,8 @@ class GivenABaseIdNumberValueArrayField (TestCase):
                                  self.DICTIONARY_LENGTH)
 
                 self.assertEqual(
-                    context.exception.args[0], BASE_ID_NUMBER_VALUE_ARRAY_ID + VALUE_NOT_VALID_ERROR.format(field, INVALID_NUMBER_VALUE))
+                    context.exception.args[0],
+                    BASE_ID_NUMBER_VALUE_ARRAY_ID + VALUE_NOT_VALID_ERROR.format(field, INVALID_NUMBER_VALUE))
 
     def test_when_updating_value_key_value_with_valid_value_then_it_is_updated(self):
         field_names = [

@@ -5,6 +5,8 @@ It contains the GivenANetwork class, which inherits from TestCase and performs a
 Network tests.
 """
 
+import logging
+
 from typing import TypedDict
 from unittest import TestCase
 
@@ -12,7 +14,11 @@ from unittest.mock import MagicMock
 
 from test.config.config_test_helper import ConfigTestHelper
 
-import logging
+from web3.exceptions import (
+    Web3AttributeError,
+    Web3TypeError,
+    Web3ValueError,
+)
 
 from bcubed.blockchain.network import Network
 from bcubed.config.config import Config
@@ -45,7 +51,40 @@ class GivenANetwork(TestCase):
         self.web3_contract = MagicMock()
 
         contract_meta_data_record = tuple(
-            (1729062217, 'Name', 'Version', 'Serial', 'Manufacturer', 'resp', 'Black Box Name', 'B650M-DS3H-23524', 'x86_64', "{'0': ' AMD Ryzen 9 7900X 12-Core Processor', '1': ' AMD Ryzen 9 7900X 12-Core Processor', '2': ' AMD Ryzen 9 7900X 12-Core Processor', '3': ' AMD Ryzen 9 7900X 12-Core Processor', '4': ' AMD Ryzen 9 7900X 12-Core Processor', '5': ' AMD Ryzen 9 7900X 12-Core Processor', '6': ' AMD Ryzen 9 7900X 12-Core Processor', '7': ' AMD Ryzen 9 7900X 12-Core Processor', '8': ' AMD Ryzen 9 7900X 12-Core Processor', '9': ' AMD Ryzen 9 7900X 12-Core Processor', '10': ' AMD Ryzen 9 7900X 12-Core Processor', '11': ' AMD Ryzen 9 7900X 12-Core Processor', '12': ' AMD Ryzen 9 7900X 12-Core Processor', '13': ' AMD Ryzen 9 7900X 12-Core Processor', '14': ' AMD Ryzen 9 7900X 12-Core Processor', '15': ' AMD Ryzen 9 7900X 12-Core Processor', '16': ' AMD Ryzen 9 7900X 12-Core Processor', '17': ' AMD Ryzen 9 7900X 12-Core Processor', '18': ' AMD Ryzen 9 7900X 12-Core Processor', '19': ' AMD Ryzen 9 7900X 12-Core Processor', '20': ' AMD Ryzen 9 7900X 12-Core Processor', '21': ' AMD Ryzen 9 7900X 12-Core Processor', '22': ' AMD Ryzen 9 7900X 12-Core Processor', '23': ' AMD Ryzen 9 7900X 12-Core Processor'}"))
+            (1729062217,
+             'Name',
+             'Version',
+             'Serial',
+             'Manufacturer',
+             'resp',
+             'Black Box Name',
+             'B650M-DS3H-23524',
+             'x86_64',
+             "{'0': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'1': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'2': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'3': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'4': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'5': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'6': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'7': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'8': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'9': ' AMD Ryzen 9 7900X 12-Core Processor', '"
+             "10': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'11': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'12': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'13': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'14': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'15': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'16': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'17': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'18': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'19': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'20': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'21': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'22': ' AMD Ryzen 9 7900X 12-Core Processor', "
+             "'23': ' AMD Ryzen 9 7900X 12-Core Processor'}"))
+
         self.web3_contract.functions.getMetaDataRecord().call = MagicMock(
             return_value=contract_meta_data_record)
         self.web3.is_connected = MagicMock(return_value=True)
@@ -138,10 +177,19 @@ class GivenANetwork(TestCase):
         return super().tearDown()
 
     def test_when_getting_account_balance_then_it_is_returned(self):
+        """
+        Given a Network instance when getting account balance then it is returned
+        """
+
         account_balance = self.network.get_account_balance()
         self.assertEqual(0, account_balance)
 
-    def test_when_deploying_contract_and_abi_are_empty_then_it_logs_a_critical_and_exit(self):
+    def test_when_deploying_contract_and_abi_and_byte_code_are_empty_then_it_logs_a_critical_and_exits(self):
+        """
+        Given a Network instance when deploying contract and abi and byte code are empty then it logs a critical and
+        exits
+        """
+
         with self.assertLogs(self.__logger, level='CRITICAL') as log:
             with self.assertRaises(SystemExit):
                 self.network.deploy_contract(True, "", "")
@@ -149,6 +197,10 @@ class GivenANetwork(TestCase):
                 log.output[0], 'CRITICAL:' + CLASS_PATH + ':Contract data are missing.')
 
     def test_when_deploying_contract_and_it_is_compiled_then_it_logs_an_info(self):
+        """
+        Given a Network instance when deploying contract and it is compiled then it logs an info
+        """
+
         with self.assertLogs(self.__logger, level='INFO') as log:
             self.network.deploy_contract(True, 'abi', 'byte_code')
 
@@ -156,48 +208,118 @@ class GivenANetwork(TestCase):
                 log.output[0], 'INFO:' + CLASS_PATH + ':Contract is deployed.')
 
     def test_when_deploying_contract_and_it_is_not_compiled_then_it_deploys_the_contract_and_logs_an_info(self):
+        """
+        Given a Network instance when deploying contract and it is not compiled then it deploys the contract and logs
+        an info
+        """
+
         with self.assertLogs(self.__logger, level='INFO') as log:
             self.network.deploy_contract(False, 'abi', 'byte_code')
 
             self.assertEqual(
                 log.output[0], 'INFO:' + CLASS_PATH + ':Contract is deployed.')
 
-    def test_when_deploying_contract_and_function_throws_exception_then_it_is_logged(self):
+    def test_when_deploying_contract_and_web3_value_error_except_is_thrown_then_it_is_logged(self):
+        """
+        Given a Network instance when deploying contract and Web3ValueError exception is thrown then it is logged
+        """
+
         self.web3.eth.wait_for_transaction_receipt = MagicMock(
-            side_effect=Exception('Mocked exception'))
+            side_effect=Web3ValueError('Mocked exception'))
 
         with self.assertLogs(self.__logger, level='ERROR') as log:
             with self.assertRaises(SystemExit):
                 self.network.deploy_contract(False, 'abi', 'byte_code')
 
-            self.assertEqual(
-                log.output[0], 'CRITICAL:' + CLASS_PATH + ':Exception when trying to deploy contract: Mocked exception')
+            log_msg = 'CRITICAL:' + CLASS_PATH + \
+                ':Web3ValueError when trying to deploy contract: Mocked exception'
+
+            self.assertEqual(log.output[0], log_msg)
+
+    def test_when_deploying_contract_and_web3_attribute_error_except_is_thrown_then_it_is_logged(self):
+        """
+        Given a Network instance when deploying contract and Web3AttributeError exception is thrown then it is logged
+        """
+
+        self.web3.eth.wait_for_transaction_receipt = MagicMock(
+            side_effect=Web3AttributeError('Mocked exception'))
+
+        with self.assertLogs(self.__logger, level='ERROR') as log:
+            with self.assertRaises(SystemExit):
+                self.network.deploy_contract(False, 'abi', 'byte_code')
+
+            log_msg = 'CRITICAL:' + CLASS_PATH + \
+                ':Web3AttributeError when trying to deploy contract: Mocked exception'
+
+            self.assertEqual(log.output[0], log_msg)
+
+    def test_when_deploying_contract_and_web3_type_error_except_is_thrown_then_it_is_logged(self):
+        """
+        Given a Network instance when deploying contract and Web3TypeError exception is thrown then it is logged
+        """
+
+        self.web3.eth.wait_for_transaction_receipt = MagicMock(
+            side_effect=Web3TypeError('Mocked exception'))
+
+        with self.assertLogs(self.__logger, level='ERROR') as log:
+            with self.assertRaises(SystemExit):
+                self.network.deploy_contract(False, 'abi', 'byte_code')
+
+            log_msg = 'CRITICAL:' + CLASS_PATH + \
+                ':Web3TypeError when trying to deploy contract: Mocked exception'
+
+            self.assertEqual(log.output[0], log_msg)
 
     def test_when_creating_network_and_web3_is_not_connected_then_sys_exit(self):
+        """
+        Given a Network instance when creating Network instance and Web3 is not connected then a SystemExit is forced
+        """
+
         self.web3.is_connected = MagicMock(return_value=False)
 
         with self.assertLogs(self.__logger, level='CRITICAL') as log:
             with self.assertRaises(SystemExit):
                 self.network = Network(self.web3)
             self.assertEqual(
-                log.output[0], 'CRITICAL:' + CLASS_PATH + ':Impossible to connect to the server. Please ensure it is up and running.')
+                log.output[0],
+                'CRITICAL:' + CLASS_PATH + ':Impossible to connect to the server. Please ensure it is up and running.')
 
-    def test_when_creating_network_then_web3_connection_is_done_and_setup_configuration(self):
+    def test_when_creating_network_then_web3_connection_and_setup_configuration_are_done(self):
+        """
+        Given a Network instance when creating Network instance then Web3 connection and setup configuration are done
+        """
+
         config = Config()
 
         self.assertEqual(
             config.get_property('address', 'contract'), self.network.get_contract_address())
 
-    def test_when_storing_meta_data_record_without_function_defined_then_it_logs_an_error(self):
-        with self.assertLogs(self.__logger, level='ERROR') as log:
-            self.network.store_meta_data_record(MetaDataRecord('responsible'))
+    def test_when_storing_meta_data_record_and_web3_attribute_error_except_is_thrown_then_it_is_logged(self):
+        """
+        Given a Network instance when storing MetaDataRecord and Web3AttributeError exception is thrown then it is
+        logged
+        """
 
-            self.assertEqual(
-                log.output[0], "ERROR:" + CLASS_PATH + ":AttributeError when storing new MD record: 'NoneType' object has no attribute 'functions'")
-
-    def test_when_storing_meta_data_record_and_function_throws_exception_then_it_is_logged(self):
         self.web3_contract.functions.setMetaDataRecord = MagicMock(
-            side_effect=Exception('Mocked exception'))
+            side_effect=Web3AttributeError('Mocked exception'))
+
+        self.network.deploy_contract(True, 'abi', 'byte_code')
+
+        with self.assertLogs(self.__logger, level='ERROR') as log:
+            self.network.store_meta_data_record(MetaDataRecord('resp'))
+
+            log_msg = 'ERROR:' + CLASS_PATH + \
+                ':Web3AttributeError when storing new MD record: Mocked exception'
+
+            self.assertEqual(log.output[0], log_msg)
+
+    def test_when_storing_meta_data_record_and_web3_type_error_except_is_thrown_then_it_is_logged(self):
+        """
+        Given a Network instance when storing MetaDataRecord and Web3TypeError exception is thrown then it is logged
+        """
+
+        self.web3_contract.functions.setMetaDataRecord = MagicMock(
+            side_effect=Web3TypeError('Mocked exception'))
 
         self.network.deploy_contract(True, 'abi', 'byte_code')
 
@@ -205,18 +327,27 @@ class GivenANetwork(TestCase):
             self.network.store_meta_data_record(MetaDataRecord('resp'))
 
             self.assertEqual(
-                log.output[0], 'ERROR:' + CLASS_PATH + ':Exception when storing new MD record: Mocked exception')
+                log.output[0], 'ERROR:' + CLASS_PATH + ':Web3TypeError when storing new MD record: Mocked exception')
 
     def test_when_storing_meta_data_record_with_function_defined_then_it_returns_true(self):
+        """
+        Given a Network instance when storing MetaDataRecord with function defined then it returns True
+        """
+
         self.network.deploy_contract(True, 'abi', 'byte_code')
 
         success = self.network.store_meta_data_record(MetaDataRecord('resp'))
 
         self.assertTrue(success)
 
-    def test_when_getting_meta_data_record_and_function_throws_exception_then_it_is_logged(self):
+    def test_when_getting_meta_data_record_and_web3_attribute_error_except_is_thrown_then_it_is_logged(self):
+        """
+        Given a Network instance when getting MetaDataRecord and Web3AttributeError exception is thrown then it is
+        logged
+        """
+
         self.web3_contract.functions.getMetaDataRecord().call = MagicMock(
-            side_effect=Exception('Mocked exception'))
+            side_effect=Web3AttributeError('Mocked exception'))
 
         self.network.deploy_contract(True, 'abi', 'byte_code')
 
@@ -224,9 +355,29 @@ class GivenANetwork(TestCase):
             self.network.get_meta_data_record()
 
             self.assertEqual(
-                log.output[0], 'ERROR:' + CLASS_PATH + ':Exception when getting MD record: Mocked exception')
+                log.output[0], 'ERROR:' + CLASS_PATH + ':Web3AttributeError when getting MD record: Mocked exception')
+
+    def test_when_getting_meta_data_record_and_web3_type_error_except_is_thrown_then_it_is_logged(self):
+        """
+        Given a Network instance when getting MetaDataRecord and Web3TypeError exception is thrown then it is logged
+        """
+
+        self.web3_contract.functions.getMetaDataRecord().call = MagicMock(
+            side_effect=Web3TypeError('Mocked exception'))
+
+        self.network.deploy_contract(True, 'abi', 'byte_code')
+
+        with self.assertLogs(self.__logger, level='ERROR') as log:
+            self.network.get_meta_data_record()
+
+            self.assertEqual(
+                log.output[0], 'ERROR:' + CLASS_PATH + ':Web3TypeError when getting MD record: Mocked exception')
 
     def test_when_getting_meta_data_record_with_function_defined_then_it_returns_the_meta_data_record(self):
+        """
+        Given a Network instance when getting MetaDataRecord with function defined then it returns the MetaDataRecord
+        """
+
         self.network.deploy_contract(True, 'abi', 'byte_code')
 
         meta_data_record = self.network.get_meta_data_record()
@@ -254,20 +405,39 @@ class GivenANetwork(TestCase):
         self.assertEqual(
             'x86_64', meta_data_record[MetaDataFields.FIELD_OSY_T])
         self.assertEqual(
-            "{'0': ' AMD Ryzen 9 7900X 12-Core Processor', '1': ' AMD Ryzen 9 7900X 12-Core Processor', '2': ' AMD Ryzen 9 7900X 12-Core Processor', '3': ' AMD Ryzen 9 7900X 12-Core Processor', '4': ' AMD Ryzen 9 7900X 12-Core Processor', '5': ' AMD Ryzen 9 7900X 12-Core Processor', '6': ' AMD Ryzen 9 7900X 12-Core Processor', '7': ' AMD Ryzen 9 7900X 12-Core Processor', '8': ' AMD Ryzen 9 7900X 12-Core Processor', '9': ' AMD Ryzen 9 7900X 12-Core Processor', '10': ' AMD Ryzen 9 7900X 12-Core Processor', '11': ' AMD Ryzen 9 7900X 12-Core Processor', '12': ' AMD Ryzen 9 7900X 12-Core Processor', '13': ' AMD Ryzen 9 7900X 12-Core Processor', '14': ' AMD Ryzen 9 7900X 12-Core Processor', '15': ' AMD Ryzen 9 7900X 12-Core Processor', '16': ' AMD Ryzen 9 7900X 12-Core Processor', '17': ' AMD Ryzen 9 7900X 12-Core Processor', '18': ' AMD Ryzen 9 7900X 12-Core Processor', '19': ' AMD Ryzen 9 7900X 12-Core Processor', '20': ' AMD Ryzen 9 7900X 12-Core Processor', '21': ' AMD Ryzen 9 7900X 12-Core Processor', '22': ' AMD Ryzen 9 7900X 12-Core Processor', '23': ' AMD Ryzen 9 7900X 12-Core Processor'}", meta_data_record[MetaDataFields.FIELD_SYS_P])
+            "{'0': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'1': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'2': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'3': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'4': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'5': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'6': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'7': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'8': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'9': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'10': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'11': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'12': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'13': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'14': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'15': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'16': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'17': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'18': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'19': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'20': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'21': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'22': ' AMD Ryzen 9 7900X 12-Core Processor', "
+            "'23': ' AMD Ryzen 9 7900X 12-Core Processor'}",
+            meta_data_record[MetaDataFields.FIELD_SYS_P])
 
-    def test_when_storing_system_data_records_without_function_defined_then_it_logs_an_error(self):
-        system_data_records = [GenericSystemDataRecord(SystemDataRecord())]
-        with self.assertLogs(self.__logger, level='ERROR') as log:
-            self.network.store_system_data_records(
-                system_data_records, 30000000)
+    def test_when_storing_sd_records_and_web3_attribute_error_except_is_thrown_then_it_is_logged(self):
+        """
+        Given a Network instance when storing SystemData records and Web3TypeError exception is thrown then it is logged
+        """
 
-            self.assertEqual(
-                log.output[0], "ERROR:" + CLASS_PATH + ":AttributeError when storing new SD records: 'NoneType' object has no attribute 'functions'")
-
-    def test_when_storing_system_data_records_and_function_throws_exception_then_it_is_logged(self):
         self.web3_contract.functions.addSystemDataRecords = MagicMock(
-            side_effect=Exception('Mocked exception'))
+            side_effect=Web3AttributeError('Mocked exception'))
 
         self.network.deploy_contract(True, 'abi', 'byte_code')
 
@@ -276,9 +446,31 @@ class GivenANetwork(TestCase):
                 [GenericSystemDataRecord(SystemDataRecord())], 30000000)
 
             self.assertEqual(
-                log.output[0], 'ERROR:' + CLASS_PATH + ':Exception when storing new SD records: Mocked exception')
+                log.output[0],
+                'ERROR:' + CLASS_PATH + ':Web3AttributeError when storing new SD records: Mocked exception')
 
-    def test_when_storing_system_data_records_with_function_defined_then_it_returns_true(self):
+    def test_when_storing_sd_records_and_web3_type_error_except_is_thrown_then_it_is_logged(self):
+        """
+        Given a Network instance when storing SystemData records and Web3TypeError exception is thrown then it is logged
+        """
+
+        self.web3_contract.functions.addSystemDataRecords = MagicMock(
+            side_effect=Web3TypeError('Mocked exception'))
+
+        self.network.deploy_contract(True, 'abi', 'byte_code')
+
+        with self.assertLogs(self.__logger, level='ERROR') as log:
+            self.network.store_system_data_records(
+                [GenericSystemDataRecord(SystemDataRecord())], 30000000)
+
+            self.assertEqual(
+                log.output[0], 'ERROR:' + CLASS_PATH + ':Web3TypeError when storing new SD records: Mocked exception')
+
+    def test_when_storing_sd_records_with_function_defined_then_it_returns_true(self):
+        """
+        Given a Network instance when storing SystemData records with function defined then it returns True
+        """
+
         self.network.deploy_contract(True, 'abi', 'byte_code')
 
         system_data_records = [GenericSystemDataRecord(SystemDataRecord())]
@@ -287,19 +479,40 @@ class GivenANetwork(TestCase):
 
         self.assertTrue(success)
 
-    def test_when_getting_system_data_records_by_timestamp_and_function_throws_exception_then_it_is_logged(self):
+    def test_when_getting_sd_records_by_timestamp_and_web3_attribute_error_except_is_thrown_then_it_is_logged(self):
+        """
+        Given a Network instance when getting SystemData records by timestamp and Web3AttributeError exception is
+        thrown then it is logged
+        """
+
         self.web3_contract.functions.getSystemDataRecordsByTimestamp().call = MagicMock(
-            side_effect=Exception('Mocked exception'))
+            side_effect=Web3AttributeError('Mocked exception'))
 
         self.network.deploy_contract(True, 'abi', 'byte_code')
 
         with self.assertLogs(self.__logger, level='ERROR') as log:
             self.network.get_system_data_records_by_timestamp(1742384883)
 
-            self.assertEqual(
-                log.output[0], 'ERROR:' + CLASS_PATH + ':Exception when getting SD records by timestamp: Mocked exception')
+            log_msg = 'ERROR:' + CLASS_PATH + \
+                ':Web3AttributeError when getting SD records by timestamp: Mocked exception'
 
-    def test_when_getting_system_data_records_by_timestamp_with_function_defined_then_it_returns_the_system_data_records_list(self):
+            self.assertEqual(log.output[0], log_msg)
+
+    def test_when_getting_sd_records_by_timestamp_and_web3_type_error_except_is_thrown_then_it_is_logged(self):
+        self.web3_contract.functions.getSystemDataRecordsByTimestamp().call = MagicMock(
+            side_effect=Web3TypeError('Mocked exception'))
+
+        self.network.deploy_contract(True, 'abi', 'byte_code')
+
+        with self.assertLogs(self.__logger, level='ERROR') as log:
+            self.network.get_system_data_records_by_timestamp(1742384883)
+
+            log_msg = 'ERROR:' + CLASS_PATH + \
+                ':Web3TypeError when getting SD records by timestamp: Mocked exception'
+
+            self.assertEqual(log.output[0], log_msg)
+
+    def test_when_getting_sds_by_timestamp_with_function_defined_then_it_returns_the_system_data_records_list(self):
         self.network.deploy_contract(True, 'abi', 'byte_code')
 
         system_data_records = self.network.get_system_data_records_by_timestamp(
@@ -318,7 +531,9 @@ class GivenANetwork(TestCase):
         self.assertEqual(
             1, system_data_records[0][SystemDataFields.FIELD_SYS_X][IdValueFields.FIELD_ID])
         self.assertEqual(
-            "rcl_interfaces.msg.Log(stamp=builtin_interfaces.msg.Time(sec=1738144491, nanosec=419263596), level=20, name='rosbag2_recorder', msg=\"Subscribed to topic '/rosout'\", file='./src/rosbag2_transport/recorder.cpp', function='subscribe_topic', line=368)",
+            "rcl_interfaces.msg.Log(stamp=builtin_interfaces.msg.Time(sec=1738144491, nanosec=419263596), level=20, "
+            "name='rosbag2_recorder', msg=\"Subscribed to topic '/rosout'\", "
+            "file='./src/rosbag2_transport/recorder.cpp', function='subscribe_topic', line=368)",
             system_data_records[0][SystemDataFields.FIELD_SYS_X][IdValueFields.FIELD_VALUE])
 
         self.assertEqual(
@@ -328,7 +543,9 @@ class GivenANetwork(TestCase):
         self.assertEqual(
             1, system_data_records[1][SystemDataFields.FIELD_SYS_X][IdValueFields.FIELD_ID])
         self.assertEqual(
-            "rcl_interfaces.msg.Log(stamp=builtin_interfaces.msg.Time(sec=1738144491, nanosec=419863802), level=20, name='rosbag2_recorder', msg=\"Subscribed to topic '/events/write_split'\", file='./src/rosbag2_transport/recorder.cpp', function='subscribe_topic', line=368)",
+            "rcl_interfaces.msg.Log(stamp=builtin_interfaces.msg.Time(sec=1738144491, nanosec=419863802), level=20, "
+            "name='rosbag2_recorder', msg=\"Subscribed to topic '/events/write_split'\", file='./src/rosbag2_transport"
+            "/recorder.cpp', function='subscribe_topic', line=368)",
             system_data_records[1][SystemDataFields.FIELD_SYS_X][IdValueFields.FIELD_VALUE])
 
         self.assertEqual(
@@ -381,13 +598,6 @@ class GivenANetwork(TestCase):
         self.assertEqual(
             100, system_data_records[7][SystemDataFields.FIELD_WIFI][IdValueFields.FIELD_VALUE])
 
-    def test_when_storing_overview_data_record_without_function_defined_then_it_logs_an_error(self):
-        with self.assertLogs(self.__logger, level='ERROR') as log:
-            self.network.store_overview_data_record(OverviewDataRecord())
-
-            self.assertEqual(
-                log.output[0], "ERROR:" + CLASS_PATH + ":AttributeError when storing new OD record: 'NoneType' object has no attribute 'functions'")
-
     def test_when_storing_overview_data_record_with_function_defined_then_it_returns_true(self):
         self.network.deploy_contract(True, 'abi', 'byte_code')
 
@@ -395,9 +605,23 @@ class GivenANetwork(TestCase):
 
         self.assertTrue(success)
 
-    def test_when_storing_overview_data_record_and_function_throws_exception_then_it_is_logged(self):
+    def test_when_storing_overview_data_record_and_web3_attribute_error_except_is_thrown_then_it_is_logged(self):
         self.web3_contract.functions.setOverviewDataRecord = MagicMock(
-            side_effect=Exception('Mocked exception'))
+            side_effect=Web3AttributeError('Mocked exception'))
+
+        self.network.deploy_contract(True, 'abi', 'byte_code')
+
+        with self.assertLogs(self.__logger, level='ERROR') as log:
+            self.network.store_overview_data_record(OverviewDataRecord())
+
+            log_msg = 'ERROR:' + CLASS_PATH + \
+                ':Web3AttributeError when storing new OD record: Mocked exception'
+
+            self.assertEqual(log.output[0], log_msg)
+
+    def test_when_storing_overview_data_record_and_web3_type_error_except_is_thrown_then_it_is_logged(self):
+        self.web3_contract.functions.setOverviewDataRecord = MagicMock(
+            side_effect=Web3TypeError('Mocked exception'))
 
         self.network.deploy_contract(True, 'abi', 'byte_code')
 
@@ -405,11 +629,11 @@ class GivenANetwork(TestCase):
             self.network.store_overview_data_record(OverviewDataRecord())
 
             self.assertEqual(
-                log.output[0], 'ERROR:' + CLASS_PATH + ':Exception when storing new OD record: Mocked exception')
+                log.output[0], 'ERROR:' + CLASS_PATH + ':Web3TypeError when storing new OD record: Mocked exception')
 
-    def test_when_getting_overview_data_record_and_function_throws_exception_then_it_is_logged(self):
+    def test_when_getting_overview_data_record_and_web3_attribute_error_except_is_thrown_then_it_is_logged(self):
         self.web3_contract.functions.getOverviewDataRecord().call = MagicMock(
-            side_effect=Exception('Mocked exception'))
+            side_effect=Web3AttributeError('Mocked exception'))
 
         self.network.deploy_contract(True, 'abi', 'byte_code')
 
@@ -417,7 +641,19 @@ class GivenANetwork(TestCase):
             self.network.get_overview_data_record()
 
             self.assertEqual(
-                log.output[0], 'ERROR:' + CLASS_PATH + ':Exception when getting OD record: Mocked exception')
+                log.output[0], 'ERROR:' + CLASS_PATH + ':Web3AttributeError when getting OD record: Mocked exception')
+
+    def test_when_getting_overview_data_record_and_web3_type_error_except_is_thrown_then_it_is_logged(self):
+        self.web3_contract.functions.getOverviewDataRecord().call = MagicMock(
+            side_effect=Web3TypeError('Mocked exception'))
+
+        self.network.deploy_contract(True, 'abi', 'byte_code')
+
+        with self.assertLogs(self.__logger, level='ERROR') as log:
+            self.network.get_overview_data_record()
+
+            self.assertEqual(
+                log.output[0], 'ERROR:' + CLASS_PATH + ':Web3TypeError when getting OD record: Mocked exception')
 
     def test_when_getting_overview_data_records_with_function_defined_then_it_returns_the_overview_data_record(self):
         self.network.deploy_contract(True, 'abi', 'byte_code')
@@ -445,16 +681,25 @@ class GivenANetwork(TestCase):
         self.assertEqual(
             1000, estimated_gas)
 
-    def test_when_estimating_gas_and_throws_an_exception_then_it_returns_zero(self):
+    def test_when_estimating_gas_and_throws_web3_attribute_error_except_then_it_returns_zero(self):
         self.web3_contract.functions.addSystemDataRecords().estimate_gas = MagicMock(
-            side_effect=Exception('Mocked exception'))
+            side_effect=Web3AttributeError('Mocked exception'))
 
         self.network.deploy_contract(True, 'abi', 'byte_code')
 
         estimated_gas = self.network.get_estimated_gas([])
 
-        self.assertEqual(
-            0, estimated_gas)
+        self.assertEqual(0, estimated_gas)
+
+    def test_when_estimating_gas_and_throws_web3_type_error_except_then_it_returns_zero(self):
+        self.web3_contract.functions.addSystemDataRecords().estimate_gas = MagicMock(
+            side_effect=Web3TypeError('Mocked exception'))
+
+        self.network.deploy_contract(True, 'abi', 'byte_code')
+
+        estimated_gas = self.network.get_estimated_gas([])
+
+        self.assertEqual(0, estimated_gas)
 
     def test_when_creating_network_and_config_contains_contract_then_it_is_recovered(self):
         config = Config()
@@ -474,9 +719,9 @@ class GivenANetwork(TestCase):
 
         self.assertEqual(1729062217, initial_timestamp)
 
-    def test_when_getting_initial_timestamp_and_function_throws_exception_then_it_is_logged(self):
+    def test_when_getting_initial_timestamp_and_web3_attribute_error_except_is_thrown_then_it_is_logged(self):
         self.web3_contract.functions.getInitialTimestamp().call = MagicMock(
-            side_effect=Exception('Mocked exception'))
+            side_effect=Web3AttributeError('Mocked exception'))
 
         self.network.deploy_contract(False, 'abi', 'byte_code')
 
@@ -485,7 +730,22 @@ class GivenANetwork(TestCase):
 
             self.assertEqual(0, intial_timestamp)
             self.assertEqual(
-                log.output[0], 'ERROR:' + CLASS_PATH + ':Exception when getting the initial timestamp: Mocked exception')
+                log.output[0],
+                'ERROR:' + CLASS_PATH + ':Web3AttributeError when getting the initial timestamp: Mocked exception')
+
+    def test_when_getting_initial_timestamp_and_web3_type_error_except_is_thrown_then_it_is_logged(self):
+        self.web3_contract.functions.getInitialTimestamp().call = MagicMock(
+            side_effect=Web3TypeError('Mocked exception'))
+
+        self.network.deploy_contract(False, 'abi', 'byte_code')
+
+        with self.assertLogs(self.__logger, level='ERROR') as log:
+            intial_timestamp = self.network.get_initial_timestamp()
+
+            self.assertEqual(0, intial_timestamp)
+            self.assertEqual(
+                log.output[0],
+                'ERROR:' + CLASS_PATH + ':Web3TypeError when getting the initial timestamp: Mocked exception')
 
     def test_when_getting_final_timestamp_and_returns_it(self):
         self.network.deploy_contract(True, 'abi', 'byte_code')
@@ -494,15 +754,32 @@ class GivenANetwork(TestCase):
 
         self.assertEqual(1729062317, final_timestamp)
 
-    def test_when_getting_final_timestamp_and_function_throws_exception_then_it_is_logged(self):
+    def test_when_getting_final_timestamp_and_web3_attribute_error_except_is_thrown_then_it_is_logged(self):
         self.web3_contract.functions.getFinalTimestamp().call = MagicMock(
-            side_effect=Exception('Mocked exception'))
+            side_effect=Web3AttributeError('Mocked exception'))
 
         with self.assertLogs(self.__logger, level='ERROR') as log:
             self.network.deploy_contract(False, 'abi', 'byte_code')
 
             final_timestamp = self.network.get_final_timestamp()
 
+            log_msg = 'ERROR:' + CLASS_PATH + \
+                ':Web3AttributeError when getting the final timestamp: Mocked exception'
+
             self.assertEqual(0, final_timestamp)
-            self.assertEqual(
-                log.output[0], 'ERROR:' + CLASS_PATH + ':Exception when getting the final timestamp: Mocked exception')
+            self.assertEqual(log.output[0], log_msg)
+
+    def test_when_getting_final_timestamp_and_web3_type_error_except_is_thrown_then_it_is_logged(self):
+        self.web3_contract.functions.getFinalTimestamp().call = MagicMock(
+            side_effect=Web3TypeError('Mocked exception'))
+
+        with self.assertLogs(self.__logger, level='ERROR') as log:
+            self.network.deploy_contract(False, 'abi', 'byte_code')
+
+            final_timestamp = self.network.get_final_timestamp()
+
+            log_msg = 'ERROR:' + CLASS_PATH + \
+                ':Web3TypeError when getting the final timestamp: Mocked exception'
+
+            self.assertEqual(0, final_timestamp)
+            self.assertEqual(log.output[0], log_msg)

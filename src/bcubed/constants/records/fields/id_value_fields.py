@@ -6,7 +6,7 @@ These constants define the field names that the id-value fields can contain.
 """
 
 
-class IdValueFields:
+class IdValueFields:  # pylint: disable=too-few-public-methods
     """
     It contains only constants related to id-value fields. These constants define the field names
     that the id-value fields can contain.

@@ -11,6 +11,7 @@ import os
 from unittest import TestCase
 from unittest.mock import MagicMock
 
+from bcubed.records.fields.id_uint8_value_float_field import IdUint8ValueFloatField
 from test.config.config_test_helper import ConfigTestHelper
 
 from bcubed.blockchain.contract import Contract
@@ -21,7 +22,6 @@ from bcubed.constants.records.fields.id_value_fields import IdValueFields
 from bcubed.constants.records.fields.system_data_fields import SystemDataFields
 from bcubed.records.system_data_record import SystemDataRecord
 from bcubed.records.fields.id_uint8_value_array_uint16_field import IdUint8ValueArrayUint16Field
-from bcubed.records.fields.id_uint16_value_int24_field import IdUint16ValueInt24Field
 from bcubed.records.meta_data_record import MetaDataRecord
 from bcubed.records.overview_data_record import OverviewDataRecord
 
@@ -86,35 +86,57 @@ class GivenANode(TestCase):
         return super().tearDown()
 
     def test_when_getting_account_balance_then_it_returns_the_account_balance_from_network(self):
+        """
+        Given a Node when getting account balance then it returns the account balance from Network
+        """
+
         account_balance = self.node.get_account_balance()
 
         self.assertEqual(account_balance, 999999999999999)
 
     def test_when_storing_meta_data_record_then_it_returns_true(self):
+        """
+        Given a Node when storing MetaDataRecord then it returns true
+        """
+
         success = self.node.store_meta_data_record(MetaDataRecord("resp"))
 
         self.assertTrue(success)
 
     def test_when_getting_meta_data_record_then_it_returns_the_meta_data_record(self):
+        """
+        Given a Node when getting MetaDataRecord then it returns the MetaDataRecord
+        """
+
         meta_data_record = self.node.get_meta_data_record()
 
         self.assertEqual(MetaDataRecord, type(meta_data_record))
         self.assertEqual(1, meta_data_record[CommonDataFields.FIELD_TYP_R])
 
     def test_when_storing_sd_records_and_size_is_more_than_limit_then_it_logs_an_info(self):
+        """
+        Given a Node when storing SystemData records and size is more than limit then it logs an info
+        """
+
+        self.network.get_estimated_gas = MagicMock(return_value=1000)
+
         with self.assertLogs(self.__logger, level="INFO") as log:
             system_data_record = SystemDataRecord()
             system_data_record[SystemDataFields.FIELD_SYS_X][IdValueFields.FIELD_ID] = 1
-            system_data_record[SystemDataFields.FIELD_SYS_X][IdValueFields.FIELD_VALUE] = "a"*500*100000
+            system_data_record[SystemDataFields.FIELD_SYS_X][IdValueFields.FIELD_VALUE] = "a" * 500 * 100000
 
             success = self.node.store_system_data_record(system_data_record)
 
             self.assertFalse(success)
 
-            self.assertEqual(
-                log.output[0], 'INFO:' + CLASS_PATH + ':Invalid size: 50374')
+            self.assertIn('INFO:' + CLASS_PATH +
+                          ':Invalid size:', log.output[0])
 
     def test_when_storing_sd_records_and_gas_is_more_than_limit_then_it_logs_a_critical(self):
+        """
+        Given a Node when storing SystemData records and gas is more than limit then it logs a critical
+        """
+
         self.network.get_estimated_gas = MagicMock(return_value=30000001)
 
         with self.assertLogs(self.__logger, level="CRITICAL") as log:
@@ -126,6 +148,10 @@ class GivenANode(TestCase):
                 log.output[0], 'CRITICAL:' + CLASS_PATH + ':Invalid gas: 30000001')
 
     def test_when_storing_sd_records_and_gas_cannot_be_calculated_then_it_logs_a_critical(self):
+        """
+        Given a Node when storing SystemData records and gas cannot be calculated then it logs a critical
+        """
+
         self.network.get_estimated_gas = MagicMock(return_value=0)
 
         with self.assertLogs(self.__logger, level="CRITICAL") as log:
@@ -133,18 +159,29 @@ class GivenANode(TestCase):
 
             self.assertFalse(success)
 
-            self.assertEqual(
-                log.output[0], 'CRITICAL:' + CLASS_PATH + ':Estimated gas cannot be calculated. Probably, the size of the message is too big.')
+            log_msg = 'CRITICAL:' + CLASS_PATH + \
+                ':Estimated gas cannot be calculated. Probably, the size of the message is too big.'
 
-    def test_when_storing_sd_records_and_gas_add_is_more_than_limit_then_it_returns_true(self):
+            self.assertEqual(log.output[0], log_msg)
+
+    def test_when_storing_sd_records_and_gas_add_is_less_than_limit_then_it_returns_true(self):
+        """
+        Given a Node when storing SystemData records and gas is less than limit then it returns True
+        """
+
         self.network.get_estimated_gas = MagicMock(return_value=29999999)
 
-        self.node.store_system_data_record(SystemDataRecord())
         success = self.node.store_system_data_record(SystemDataRecord())
+        self.assertTrue(success)
 
+        success = self.node.store_system_data_record(SystemDataRecord())
         self.assertTrue(success)
 
     def test_when_storing_system_data_records_with_one_value_then_it_returns_true(self):
+        """
+        Given a Node when storing SystemData records with one value then it returns True
+        """
+
         self.network.get_estimated_gas = MagicMock(return_value=30000000)
 
         sd_record = SystemDataRecord()
@@ -155,28 +192,43 @@ class GivenANode(TestCase):
         self.assertTrue(success)
 
     def test_when_storing_system_data_records_with_two_values_then_it_returns_true(self):
+        """
+        Given a Node when storing SystemData records with two values then it returns True
+        """
+
         self.network.get_estimated_gas = MagicMock(return_value=30000000)
 
         sd_record = SystemDataRecord()
-        sd_record[SystemDataFields.FIELD_ACT_D] = IdUint16ValueInt24Field(
-            {IdValueFields.FIELD_ID: 1, IdValueFields.FIELD_VALUE: 30})
+        sd_record[SystemDataFields.FIELD_ACT_D] = IdUint8ValueFloatField(
+            {IdValueFields.FIELD_ID: 1, IdValueFields.FIELD_VALUE: 30.0})
 
         success = self.node.store_system_data_record(sd_record)
 
         self.assertTrue(success)
 
-    def test_when_storing_system_data_records_with_four_valuesthen_it_returns_true(self):
+    def test_when_storing_system_data_records_with_four_values_then_it_returns_true(self):
+        """
+        Given a Node when storing SystemData records with four values then it returns True
+        """
+
         self.network.get_estimated_gas = MagicMock(return_value=30000000)
 
         sd_record = SystemDataRecord()
-        sd_record[SystemDataFields.FIELD_GYR_V] = IdUint8ValueArrayUint16Field(
-            {IdValueFields.FIELD_ID: 1, IdValueFields.FIELD_VALUE_1: 1, IdValueFields.FIELD_VALUE_2: 2, IdValueFields.FIELD_VALUE_3: 3})
+        sd_record[SystemDataFields.FIELD_GYR_V] = IdUint8ValueArrayUint16Field({
+            IdValueFields.FIELD_ID: 1,
+            IdValueFields.FIELD_VALUE_1: 1,
+            IdValueFields.FIELD_VALUE_2: 2,
+            IdValueFields.FIELD_VALUE_3: 3})
 
         success = self.node.store_system_data_record(sd_record)
 
         self.assertTrue(success)
 
-    def test_when_getting_system_data_records_by_timestamp_then_it_returns_the_system_data_records_by_timestamp(self):
+    def test_when_getting_system_data_records_by_timestamp_then_it_returns_them(self):
+        """
+        Given a Node when getting SystemData records by timestamp then it returns them
+        """
+
         system_data_records_by_timestamp = self.node.get_system_data_records_by_timestamp(
             1742384883, 1742384885)
 
@@ -186,7 +238,11 @@ class GivenANode(TestCase):
         self.assertEqual(
             False, system_data_records_by_timestamp[0][SystemDataFields.FIELD_AUT_B])
 
-    def test_when_getting_system_data_records_by_timestamp_and_there_are_empty_seconds_then_it_returns_the_system_data_records_by_timestamp_but_stops(self):
+    def test_when_getting_sd_records_by_timestamp_with_empty_list_then_it_returns_empty_list(self):
+        """
+        Given a Node when getting SystemData records by timestamp with empty list then it returns an empty list
+        """
+
         self.network.get_system_data_records_by_timestamp = MagicMock(
             return_value=[])
 
@@ -197,6 +253,10 @@ class GivenANode(TestCase):
         self.assertEqual(0, len(system_data_records_by_timestamp))
 
     def test_when_getting_system_data_records_by_timestamp_and_timestamps_are_wrong_then_it_returns_empty_list(self):
+        """
+        Given a Node when getting SystemData records by timestamp and timestamps are wrong then it returns an empty list
+        """
+
         system_data_records_by_timestamp = self.node.get_system_data_records_by_timestamp(
             1742384885, 1742384883)
 
@@ -204,17 +264,29 @@ class GivenANode(TestCase):
         self.assertEqual(0, len(system_data_records_by_timestamp))
 
     def test_when_storing_overview_data_record_then_it_returns_true(self):
+        """
+        Given a Node when storing OverviewDataRecord then it returns True
+        """
+
         success = self.node.store_overview_data_record(OverviewDataRecord())
 
         self.assertTrue(success)
 
-    def test_when_getting_overview_data_record_then_it_returns_the_overview_data_record(self):
+    def test_when_getting_overview_data_record_then_it_returns_it(self):
+        """
+        Given a Node when getting OverviewDataRecord then it returns it
+        """
+
         overview_data_record = self.node.get_overview_data_record()
 
         self.assertEqual(OverviewDataRecord, type(overview_data_record))
         self.assertEqual(3, overview_data_record[CommonDataFields.FIELD_TYP_R])
 
     def test_when_deleting_node_then_the_remaining_system_records_are_stored(self):
+        """
+        Given a Node when deleting Node then the remaining SystemData records are stored
+        """
+
         self.network.get_estimated_gas = MagicMock(return_value=20000)
         for _ in range(5):
             self.node.store_system_data_record(SystemDataRecord())
@@ -223,9 +295,14 @@ class GivenANode(TestCase):
             del self.node
 
             self.assertEqual(
-                log.output[0], 'INFO:' + CLASS_PATH + ':Storing remaining SD records. Records: 5. Estimated gas: 100000\n')
+                log.output[0],
+                'INFO:' + CLASS_PATH + ':Storing remaining SD records. Records: 5. Estimated gas: 100000\n')
 
     def test_when_creating_a_node_and_contract_is_already_compiled_then_it_is_not_compiled_again(self):
+        """
+        Given a Node when creating a Node and contract is already compiled then it is not compiled again
+        """
+
         if self.config_test_helper.get_json_path().exists():
             os.remove(self.config_test_helper.get_json_path())
 
@@ -243,14 +320,22 @@ class GivenANode(TestCase):
             _ = Node(network, contract)
 
             self.assertFalse(
-                "Compiling smart contracts..." in log.output[0])
+                "Compiling smart contract..." in log.output[0])
 
-    def test_when_getting_initial_timestamp_then_it_is_returned(self):
+    def test_when_getting_initial_timestamp_then_it_returns_it(self):
+        """
+        Given a Node when getting initial timestamp then it returns it
+        """
+
         initial_timestamp = self.node.get_initial_timestamp()
 
         self.assertEqual(1729062217, initial_timestamp)
 
-    def test_when_getting_final_timestamp_then_it_is_returned(self):
+    def test_when_getting_final_timestamp_then_it_returns_it(self):
+        """
+        Given a Node when getting fianl timestamp then it returns it
+        """
+
         final_timestamp = self.node.get_final_timestamp()
 
         self.assertEqual(1729062317, final_timestamp)

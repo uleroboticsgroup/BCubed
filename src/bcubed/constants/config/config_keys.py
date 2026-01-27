@@ -6,7 +6,7 @@ These constants define the keys that the configuration can contain.
 """
 
 
-class ConfigKeys:
+class ConfigKeys:  # pylint: disable=too-few-public-methods
     """
     It contains only constants related to config keys. These constants define the keys that the
     config file can contain.

@@ -14,13 +14,13 @@ from logging import handlers
 
 class Logger:
     """
-    It is responsible for the trace logging and contains the logging settings, such as log level, 
+    It is responsible for the trace logging and contains the logging settings, such as log level,
     formatter, size and so on. This is the class that all modules must get in order to log traces.
     """
 
     __log_files_path = "./logs/"
     __log_level = logging.INFO
-    __log_formatter = "%(asctime)s::%(name)-29s::%(levelname)-7s::%(message)s"
+    __log_formatter = "%(asctime)s::%(name)s::%(levelname)s::%(message)s"
 
     def __init__(self, log_name: str) -> None:
         self.__log_name = log_name

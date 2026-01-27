@@ -4,5 +4,5 @@ pytest==8.3.2
 pytest-cov==5.0.0
 pyyaml==6.0.2
 py-solc-x==2.0.3
-typeguard==4.3.0    # pyyaml dependency
+typeguard==4.4.1    # pyyaml dependency
 web3==7.5.0

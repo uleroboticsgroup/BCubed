@@ -6,9 +6,9 @@ These constants define the categories that the configuration can contain.
 """
 
 
-class ConfigCategories:
+class ConfigCategories:  # pylint: disable=too-few-public-methods
     """
-    It contains only constants related to config categories. These constants define the categories 
+    It contains only constants related to config categories. These constants define the categories
     that the config file can contain.
     Add values as required.
     """

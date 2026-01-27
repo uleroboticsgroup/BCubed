@@ -6,7 +6,7 @@ These constants define the field names that the meta data record type fields can
 """
 
 
-class MetaDataFields:
+class MetaDataFields:  # pylint: disable=too-few-public-methods
     """
     It contains only constants related to meta data fields. These constants define the field names
     that the meta data record type fields can contain.

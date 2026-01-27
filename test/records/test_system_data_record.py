@@ -7,11 +7,13 @@ SystemDataRecord tests.
 
 from unittest import TestCase
 
+from bcubed.records.fields.id_uint8_value_float_field import IdUint8ValueFloatField
 from test.records.constants import DEFAULT_BASE_FIELD_NUMBER
 
 from test.records.fields.constants import (
     BASE_DATA_RECORD_ID,
     NEW_KEYS_ERROR,
+    VALID_FLOAT_VALUE,
     VALUE_NOT_VALID_ERROR,
     TEST_STRING,
     DEFAULT_NUMBER_VALUE,
@@ -21,7 +23,6 @@ from test.records.fields.constants import (
     VALID_STRING_VALUE,
     VALID_BOOL_VALUE,
     INVALID_NUMBER_VALUE,
-    INVALID_STRING_VALUE,
     INVALID_BOOL_VALUE
 )
 
@@ -56,7 +57,11 @@ class GivenASystemDataRecord (TestCase):
 
         return super().tearDown()
 
-    def test_when_creating_record_then_its_values_are_default_ones(self):
+    def test_when_getting_data_then_their_values_are_the_default_ones(self):
+        """
+        Given a SystemDataRecord when getting data then their values are the default ones
+        """
+
         self.assertEqual(len(self.system_data_record), self.DICTIONARY_LENGTH)
 
         self.assertEqual(self.system_data_record[CommonDataFields.FIELD_TYP_R], int(
@@ -104,6 +109,10 @@ class GivenASystemDataRecord (TestCase):
             self.system_data_record[SystemDataFields.FIELD_SYS_X], IdUint8ValueStringField())
 
     def test_when_adding_new_key_then_it_is_not_added_and_an_exception_raises(self):
+        """
+        Given a SystemDataRecord when adding new key then it is not added and an exception raises
+        """
+
         with self.assertRaises(KeyError) as context:
             self.system_data_record[TEST_STRING] = TEST_STRING
 
@@ -113,6 +122,11 @@ class GivenASystemDataRecord (TestCase):
             context.exception.args[0], BASE_DATA_RECORD_ID + NEW_KEYS_ERROR.format(TEST_STRING))
 
     def test_when_updating_number_key_value_with_invalid_value_then_it_is_not_updated_and_an_exception_raises(self):
+        """
+        Given a SystemDataRecord when updating number key value with invalid value then it is not updated and an
+        exception raises
+        """
+
         system_data_fields = [
             SystemDataFields.FIELD_SYS_T,
             SystemDataFields.FIELD_BAT_L
@@ -130,9 +144,14 @@ class GivenASystemDataRecord (TestCase):
                                  self.DICTIONARY_LENGTH)
 
                 self.assertEqual(
-                    context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(field, INVALID_NUMBER_VALUE))
+                    context.exception.args[0],
+                    self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(field, INVALID_NUMBER_VALUE))
 
     def test_when_updating_number_key_value_with_valid_value_then_it_is_updated(self):
+        """
+        Given a SystemDataRecord when updating number key value with valid value then it is updated
+        """
+
         system_data_fields = [
             SystemDataFields.FIELD_SYS_T,
             SystemDataFields.FIELD_BAT_L
@@ -145,28 +164,11 @@ class GivenASystemDataRecord (TestCase):
                 self.assertEqual(
                     self.system_data_record[field], VALID_NUMBER_VALUE)
 
-    def test_when_updating_string_key_value_with_invalid_value_then_it_is_not_updated_and_an_exception_raises(self):
-        system_data_fields = [
-            SystemDataFields.FIELD_OPE_S,
-            SystemDataFields.FIELD_TXT_C,
-            SystemDataFields.FIELD_TXT_R
-        ]
-
-        for field in system_data_fields:
-            with self.subTest(field=field):
-                with self.assertRaises(ValueError) as context:
-                    self.system_data_record[field] = INVALID_STRING_VALUE
-
-                self.assertEqual(
-                    self.system_data_record[field], DEFAULT_STRING_VALUE)
-
-                self.assertEqual(len(self.system_data_record),
-                                 self.DICTIONARY_LENGTH)
-
-                self.assertEqual(
-                    context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(field, INVALID_STRING_VALUE))
-
     def test_when_updating_string_key_value_with_valid_value_then_it_is_updated(self):
+        """
+        Given a SystemDataRecord when updating string key value with valid value then it is updated
+        """
+
         system_data_fields = [
             SystemDataFields.FIELD_OPE_S,
             SystemDataFields.FIELD_TXT_C,
@@ -181,6 +183,11 @@ class GivenASystemDataRecord (TestCase):
                     self.system_data_record[field], VALID_STRING_VALUE)
 
     def test_when_updating_bool_key_value_with_invalid_value_then_it_is_not_updated_and_an_exception_raises(self):
+        """
+        Given a SystemDataRecord when updating bool key value with an invalid value then it is not updated and an
+        exception raises
+        """
+
         with self.assertRaises(ValueError) as context:
             self.system_data_record[SystemDataFields.FIELD_AUT_B] = INVALID_BOOL_VALUE
 
@@ -190,21 +197,35 @@ class GivenASystemDataRecord (TestCase):
         self.assertEqual(len(self.system_data_record), self.DICTIONARY_LENGTH)
 
         self.assertEqual(
-            context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(SystemDataFields.FIELD_AUT_B, INVALID_BOOL_VALUE))
+            context.exception.args[0],
+            self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(SystemDataFields.FIELD_AUT_B, INVALID_BOOL_VALUE))
 
     def test_when_updating_bool_key_value_with_valid_value_then_it_is_updated(self):
+        """
+        Given a SystemDataRecord when updating bool key value with valid value then it is updated
+        """
+
         self.system_data_record[SystemDataFields.FIELD_AUT_B] = VALID_BOOL_VALUE
 
         self.assertEqual(
             self.system_data_record[SystemDataFields.FIELD_AUT_B], VALID_BOOL_VALUE)
 
-    def test_when_updating_bool_key_value_with_empty__bytes_value_then_it_is_updated_to_false(self):
+    def test_when_updating_bool_key_value_with_empty_bytes_value_then_it_is_updated_to_false(self):
+        """
+        Given a SystemDataRecord when updating bool key value with empty byte value then it is updated to False
+        """
+
         self.system_data_record[SystemDataFields.FIELD_AUT_B] = b''
 
         self.assertEqual(
             self.system_data_record[SystemDataFields.FIELD_AUT_B], False)
 
-    def test_when_updating_uint16_int24_key_value_with_invalid_value_then_it_is_not_updated_and_an_exception_raises(self):
+    def test_when_updating_uint16_int24_key_value_with_invalid_value_then_an_exception_raises(self):
+        """
+        Given a SystemDataRecord when updating uint16-int24 key value with an invalid value then it is not updated and
+        an exception raises
+        """
+
         system_data_fields = [
             SystemDataFields.FIELD_ACT_D,
             SystemDataFields.FIELD_ACT_V
@@ -224,27 +245,38 @@ class GivenASystemDataRecord (TestCase):
                 self.assertEqual(
                     context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(field, VALID_NUMBER_VALUE))
 
-    def test_when_updating_uint16_int24_key_value_with_valid_value_then_it_is_updated(self):
+    def test_when_updating_uint8_float_key_value_with_valid_value_then_it_is_updated(self):
+        """
+        Given a SystemDataRecord when updating uint8-float key value with valid value then it is updated
+        """
+
         system_data_fields = [
             SystemDataFields.FIELD_ACT_D,
-            SystemDataFields.FIELD_ACT_V
+            SystemDataFields.FIELD_ACT_V,
+            SystemDataFields.FIELD_IR_SE
         ]
 
         for field in system_data_fields:
             with self.subTest(field=field):
-                field_value = IdUint16ValueInt24Field()
+                field_value = IdUint8ValueFloatField()
                 field_value[IdValueFields.FIELD_ID] = VALID_NUMBER_VALUE
-                field_value[IdValueFields.FIELD_VALUE] = VALID_NUMBER_VALUE
+                field_value[IdValueFields.FIELD_VALUE] = VALID_FLOAT_VALUE
 
                 self.system_data_record[field] = field_value
 
                 self.assertEqual(self.system_data_record[field], field_value)
 
-    def test_when_updating_uint8_uint16_key_value_with_invalid_value_then_it_is_not_updated_and_an_exception_raises(self):
+    def test_when_updating_uint8_uint16_key_value_with_invalid_value_then_an_exception_raises(self):
+        """
+        Given a SystemDataRecord when updating uint8-uint16 key value with an invalid value then it is not updated and
+        an exception raises
+        """
+
         system_data_fields = [
             SystemDataFields.FIELD_TCH_S,
             SystemDataFields.FIELD_IR_SE,
-            SystemDataFields.FIELD_IF_SE
+            SystemDataFields.FIELD_IF_SE,
+            SystemDataFields.FIELD_TMP_V
         ]
 
         for field in system_data_fields:
@@ -262,9 +294,12 @@ class GivenASystemDataRecord (TestCase):
                     context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(field, VALID_NUMBER_VALUE))
 
     def test_when_updating_uint8_uint16_key_value_with_valid_value_then_it_is_updated(self):
+        """
+        Given a SystemDataRecord when updating uint8-uint16 key value with valid value then it is updated
+        """
+
         system_data_fields = [
             SystemDataFields.FIELD_TCH_S,
-            SystemDataFields.FIELD_IR_SE,
             SystemDataFields.FIELD_IF_SE
         ]
 
@@ -278,7 +313,12 @@ class GivenASystemDataRecord (TestCase):
 
                 self.assertEqual(self.system_data_record[field], field_value)
 
-    def test_when_updating_uint8_array_uint16_key_value_with_invalid_value_then_it_is_not_updated_and_an_exception_raises(self):
+    def test_when_updating_uint8_array_uint16_key_value_with_invalid_value_then_an_exception_raises(self):
+        """
+        Given a SystemDataRecord when updating uint8-array-uint16 key value with an invalid value then it is not
+        updated and an exception raises
+        """
+
         system_data_fields = [
             SystemDataFields.FIELD_GYR_V,
             SystemDataFields.FIELD_ACC_V
@@ -299,6 +339,10 @@ class GivenASystemDataRecord (TestCase):
                     context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(field, VALID_NUMBER_VALUE))
 
     def test_when_updating_uint8_array_uint16_key_value_with_valid_value_then_it_is_updated(self):
+        """
+        Given a SystemDataRecord when updating uint8-array-uint16 key value with valid value then it is updated
+        """
+
         system_data_fields = [
             SystemDataFields.FIELD_GYR_V,
             SystemDataFields.FIELD_ACC_V
@@ -316,7 +360,12 @@ class GivenASystemDataRecord (TestCase):
 
                 self.assertEqual(self.system_data_record[field], field_value)
 
-    def test_when_updating_uint8_int16_key_value_with_invalid_value_then_it_is_not_updated_and_an_exception_raises(self):
+    def test_when_updating_uint8_int16_key_value_with_invalid_value_then_an_exception_raises(self):
+        """
+        Given a SystemDataRecord when updating uint8-int16 key value with an invalid value then it is not
+        updated and an exception raises
+        """
+
         with self.assertRaises(ValueError) as context:
             self.system_data_record[SystemDataFields.FIELD_TMP_V] = VALID_NUMBER_VALUE
 
@@ -326,19 +375,15 @@ class GivenASystemDataRecord (TestCase):
         self.assertEqual(len(self.system_data_record), self.DICTIONARY_LENGTH)
 
         self.assertEqual(
-            context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(SystemDataFields.FIELD_TMP_V, VALID_NUMBER_VALUE))
+            context.exception.args[0],
+            self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(SystemDataFields.FIELD_TMP_V, VALID_NUMBER_VALUE))
 
-    def test_when_updating_uint8_int16_key_value_with_valid_value_then_it_is_updated(self):
-        field_value = IdUint8ValueInt16Field()
-        field_value[IdValueFields.FIELD_ID] = VALID_NUMBER_VALUE
-        field_value[IdValueFields.FIELD_VALUE] = VALID_NUMBER_VALUE
+    def test_when_updating_uint8_string_key_value_with_invalid_value_then_an_exception_raises(self):
+        """
+        Given a SystemDataRecord when updating uint8-string key value with an invalid value then it is not
+        updated and an exception raises
+        """
 
-        self.system_data_record[SystemDataFields.FIELD_TMP_V] = field_value
-
-        self.assertEqual(
-            self.system_data_record[SystemDataFields.FIELD_TMP_V], field_value)
-
-    def test_when_updating_uint8_string_key_value_with_invalid_value_then_it_is_not_updated_and_an_exception_raises(self):
         system_data_fields = [
             SystemDataFields.FIELD_MIC_I,
             SystemDataFields.FIELD_CAM_F,
@@ -360,6 +405,10 @@ class GivenASystemDataRecord (TestCase):
                     context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(field, VALID_NUMBER_VALUE))
 
     def test_when_updating_uint8_string_key_value_with_valid_value_then_it_is_updated(self):
+        """
+        Given a SystemDataRecord when updating uint8-string key value with valid value then it is updated
+        """
+
         system_data_fields = [
             SystemDataFields.FIELD_MIC_I,
             SystemDataFields.FIELD_CAM_F,
@@ -376,7 +425,12 @@ class GivenASystemDataRecord (TestCase):
 
                 self.assertEqual(self.system_data_record[field], field_value)
 
-    def test_when_updating_uint8_uint8_key_value_with_invalid_value_then_it_is_not_updated_and_an_exception_raises(self):
+    def test_when_updating_uint8_uint8_key_value_with_invalid_value_then_an_exception_raises(self):
+        """
+        Given a SystemDataRecord when updating uint8-uint8 key value with an invalid value then it is not
+        updated and an exception raises
+        """
+
         with self.assertRaises(ValueError) as context:
             self.system_data_record[SystemDataFields.FIELD_WIFI] = VALID_NUMBER_VALUE
 

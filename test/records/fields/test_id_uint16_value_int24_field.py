@@ -71,7 +71,7 @@ class GivenAnIdUint16ValueInt24Field (TestCase):
         self.assertEqual(context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(
             IdValueFields.FIELD_ID, INVALID_NUMBER_VALUE))
 
-    def test_when_updating_id_key_value_with_smaller_value_than_allowed_then_it_is_not_updated_and_an_exception_raises(self):
+    def test_when_updating_id_key_value_with_smaller_value_than_allowed_then_an_exception_raises(self):
         with self.assertRaises(ValueError) as context:
             self.uint16_int24_field[IdValueFields.FIELD_ID] = UintRanges.UINT16_MIN - 1
 
@@ -83,7 +83,7 @@ class GivenAnIdUint16ValueInt24Field (TestCase):
         self.assertEqual(context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(
             IdValueFields.FIELD_ID, UintRanges.UINT16_MIN - 1))
 
-    def test_when_updating_id_key_value_with_greater_value_than_allowed_then_it_is_not_updated_and_an_exception_raises(self):
+    def test_when_updating_id_key_value_with_greater_value_than_allowed_then_an_exception_raises(self):
         with self.assertRaises(ValueError) as context:
             self.uint16_int24_field[IdValueFields.FIELD_ID] = UintRanges.UINT16_MAX + 1
 
@@ -101,7 +101,7 @@ class GivenAnIdUint16ValueInt24Field (TestCase):
         self.assertEqual(
             self.uint16_int24_field[IdValueFields.FIELD_ID], VALID_NUMBER_VALUE)
 
-    def test_when_updating_value_key_value_with_invalid_value_then_it_is_not_updated_and_an_exception_raises(self):
+    def test_when_updating_value_key_value_with_invalid_value_then_an_exception_raises(self):
         with self.assertRaises(ValueError) as context:
             self.uint16_int24_field[IdValueFields.FIELD_VALUE] = INVALID_NUMBER_VALUE
 
@@ -113,7 +113,7 @@ class GivenAnIdUint16ValueInt24Field (TestCase):
         self.assertEqual(context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(
             IdValueFields.FIELD_VALUE, INVALID_NUMBER_VALUE))
 
-    def test_when_updating_value_key_value_with_smaller_value_than_allowed_then_it_is_not_updated_and_an_exception_raises(self):
+    def test_when_updating_value_key_value_with_smaller_value_than_allowed_then_an_exception_raises(self):
         with self.assertRaises(ValueError) as context:
             self.uint16_int24_field[IdValueFields.FIELD_VALUE] = IntRanges.INT24_MIN - 1
 
@@ -125,7 +125,7 @@ class GivenAnIdUint16ValueInt24Field (TestCase):
         self.assertEqual(context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(
             IdValueFields.FIELD_VALUE, IntRanges.INT24_MIN - 1))
 
-    def test_when_updating_value_key_value_with_greater_value_than_allowed_then_it_is_not_updated_and_an_exception_raises(self):
+    def test_when_updating_value_key_value_with_greater_value_than_allowed_then_an_exception_raises(self):
         with self.assertRaises(ValueError) as context:
             self.uint16_int24_field[IdValueFields.FIELD_VALUE] = IntRanges.INT24_MAX + 1
 

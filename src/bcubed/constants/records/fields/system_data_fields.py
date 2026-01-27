@@ -6,7 +6,7 @@ These constants define the field names that the system data record type fields c
 """
 
 
-class SystemDataFields:
+class SystemDataFields:  # pylint: disable=too-few-public-methods
     """
     It contains only constants related to system data fields. These constants define the field names
     that the system data record type fields can contain.

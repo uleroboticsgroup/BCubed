@@ -65,17 +65,16 @@ class Node:
 
         self.json_path = Path(
             os.path.join(
-                os.path.dirname(__file__), contract_json_path +
-                contract_name + ".json"
-            )
-        )
+                os.path.dirname(__file__), contract_json_path + contract_name + ".json"))
 
     def __is_contract_compiled(self):
-        if (
-            self.json_path.exists() is False
-            or self.__network.get_contract_address() is None
-            or self.__network.get_contract_address() == ""
-        ):
+        if (self.json_path.exists() is False or
+                self.__network.get_contract_address() is None or
+                self.__network.get_contract_address() == ""):
+
+            self.__logger.info(
+                "Contract is not compiled or its address is not available")
+
             return False
 
         return True
@@ -102,12 +101,17 @@ class Node:
                 self.__total_estimated_gas,
             )
 
-            self.__network.store_system_data_records(
-                self.__system_data_records, self.__total_estimated_gas
-            )
+            try:
+                self.__network.store_system_data_records(
+                    self.__system_data_records, self.__total_estimated_gas
+                )
 
-            self.__system_data_records.clear()
-            self.__total_estimated_gas = 0
+                self.__system_data_records.clear()
+                self.__total_estimated_gas = 0
+
+            except SystemExit:
+                self.__logger.critical(
+                    "SystemExit when trying to store remaining SD records")
 
     def __get_data_to_split(self, system_data_record: GenericSystemDataRecord):
 
@@ -134,7 +138,9 @@ class Node:
 
         return data
 
-    def __split_system_data_record(self, system_data_record: GenericSystemDataRecord, chunk_length: int, chunk_size: int):
+    def __split_system_data_record(
+            self, system_data_record: GenericSystemDataRecord, chunk_length: int, chunk_size: int):
+
         data = self.__get_data_to_split(system_data_record)
         system_data_records = []
 
@@ -143,8 +149,8 @@ class Node:
 
             for d in data.keys():
                 if isinstance(data[d], str) and data[d] != '':
-                    sd_record[d] = data[d][(index *
-                                           chunk_size):((index+1)*chunk_size)]
+                    sd_record[d] = data[d][(
+                        index * chunk_size):((index + 1) * chunk_size)]
                 elif isinstance(data[d], int) and (index == 0):
                     sd_record[d] = data[d]
 

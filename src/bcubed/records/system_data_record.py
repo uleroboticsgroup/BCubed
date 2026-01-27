@@ -10,11 +10,10 @@ from zlib import decompress
 from bcubed.constants.records.fields.system_data_fields import SystemDataFields
 from bcubed.enumerates.record_type import RecordType
 from bcubed.records.base_data_record import BaseDataRecord
-from bcubed.records.fields.id_uint16_value_int24_field import IdUint16ValueInt24Field
 from bcubed.records.fields.id_uint8_value_uint16_field import IdUint8ValueUint16Field
 from bcubed.records.fields.id_uint8_value_array_uint16_field import IdUint8ValueArrayUint16Field
-from bcubed.records.fields.id_uint8_value_int16_field import IdUint8ValueInt16Field
 from bcubed.records.fields.id_uint8_value_string_field import IdUint8ValueStringField
+from bcubed.records.fields.id_uint8_value_float_field import IdUint8ValueFloatField
 
 
 class SystemDataRecord(BaseDataRecord):
@@ -43,9 +42,7 @@ class SystemDataRecord(BaseDataRecord):
 
     def __from_bytes_to_valid_unit(self, key: str, value):
         if isinstance(value, bytes):
-            if key in (
-                SystemDataFields.FIELD_BAT_L,
-            ) and value != b'':
+            if key == SystemDataFields.FIELD_BAT_L and value != b'':
                 value = int(decompress(value).decode())
 
             elif key in (
@@ -76,10 +73,9 @@ class SystemDataRecord(BaseDataRecord):
                 self.__is_valid_bool_value(key, value))
 
     def __check_composite_fields(self, key: str, value):
-        return (self.__is_valid_uint16_int24_value(key, value) or
-                self.__is_valid_uint8_uint16_value(key, value) or
+        return (self.__is_valid_uint8_uint16_value(key, value) or
                 self.__is_valid_uint8_array_uint16_value(key, value) or
-                self.__is_valid_uint8_int16_value(key, value) or
+                self.__is_valid_uint8_float_value(key, value) or
                 self.__is_valid_uint8_string_value(key, value) or
                 self.__is_valid_uint8_uint8_value(key, value))
 
@@ -102,16 +98,9 @@ class SystemDataRecord(BaseDataRecord):
     def __is_valid_bool_value(self, key: str, value):
         return key == SystemDataFields.FIELD_AUT_B and not isinstance(value, bool)
 
-    def __is_valid_uint16_int24_value(self, key: str, value):
-        return key in (
-            SystemDataFields.FIELD_ACT_D,
-            SystemDataFields.FIELD_ACT_V,
-        ) and not isinstance(value, IdUint16ValueInt24Field)
-
     def __is_valid_uint8_uint16_value(self, key: str, value):
         return key in (
             SystemDataFields.FIELD_TCH_S,
-            SystemDataFields.FIELD_IR_SE,
             SystemDataFields.FIELD_IF_SE,
         ) and not isinstance(value, IdUint8ValueUint16Field)
 
@@ -121,8 +110,13 @@ class SystemDataRecord(BaseDataRecord):
             SystemDataFields.FIELD_ACC_V,
         ) and not isinstance(value, IdUint8ValueArrayUint16Field)
 
-    def __is_valid_uint8_int16_value(self, key, value):
-        return key == SystemDataFields.FIELD_TMP_V and not isinstance(value, IdUint8ValueInt16Field)
+    def __is_valid_uint8_float_value(self, key: str, value):
+        return key in (
+            SystemDataFields.FIELD_TMP_V,
+            SystemDataFields.FIELD_ACT_D,
+            SystemDataFields.FIELD_ACT_V,
+            SystemDataFields.FIELD_IR_SE,
+        ) and not isinstance(value, IdUint8ValueFloatField)
 
     def __is_valid_uint8_string_value(self, key: str, value):
         return key in (
@@ -140,15 +134,15 @@ class SystemDataRecord(BaseDataRecord):
                 SystemDataFields.FIELD_SYS_T: 0,
                 SystemDataFields.FIELD_OPE_S: "",
                 SystemDataFields.FIELD_AUT_B: False,
-                SystemDataFields.FIELD_ACT_D: IdUint16ValueInt24Field(),
-                SystemDataFields.FIELD_ACT_V: IdUint16ValueInt24Field(),
+                SystemDataFields.FIELD_ACT_D: IdUint8ValueFloatField(),
+                SystemDataFields.FIELD_ACT_V: IdUint8ValueFloatField(),
                 SystemDataFields.FIELD_BAT_L: 0,
                 SystemDataFields.FIELD_TCH_S: IdUint8ValueUint16Field(),
-                SystemDataFields.FIELD_IR_SE: IdUint8ValueUint16Field(),
+                SystemDataFields.FIELD_IR_SE: IdUint8ValueFloatField(),
                 SystemDataFields.FIELD_IF_SE: IdUint8ValueUint16Field(),
                 SystemDataFields.FIELD_GYR_V: IdUint8ValueArrayUint16Field(),
                 SystemDataFields.FIELD_ACC_V: IdUint8ValueArrayUint16Field(),
-                SystemDataFields.FIELD_TMP_V: IdUint8ValueInt16Field(),
+                SystemDataFields.FIELD_TMP_V: IdUint8ValueFloatField(),
                 SystemDataFields.FIELD_MIC_I: IdUint8ValueStringField(),
                 SystemDataFields.FIELD_CAM_F: IdUint8ValueStringField(),
                 SystemDataFields.FIELD_TXT_C: "",

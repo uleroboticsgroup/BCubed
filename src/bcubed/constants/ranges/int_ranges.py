@@ -5,7 +5,7 @@ It contains the IntRanges class, which defines the ranges of the signed integer 
 """
 
 
-class IntRanges():
+class IntRanges():  # pylint: disable=too-few-public-methods
     """
     It contains the different signed integer type ranges.
     Add values as required.

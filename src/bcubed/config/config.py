@@ -1,7 +1,7 @@
 """
 This is a multi-class module.
 
-It contains the SingletonMeta class, which is a metaclass that supports the Singleton pattern and 
+It contains the SingletonMeta class, which is a metaclass that supports the Singleton pattern and
 ensures that only one instance of the same class is created when it is inherited.
 
 It also contains the Config class, which inherits from the SingletonMeta class and is responsible

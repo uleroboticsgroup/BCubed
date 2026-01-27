@@ -7,7 +7,7 @@ These constants define the field types that the system data record type can cont
 """
 
 
-class SystemDataFieldTypes:
+class SystemDataFieldTypes:  # pylint: disable=too-few-public-methods
     """
     It contains only constants related to system data field types. These constants define the
     types of the fields that the system data record type can contain.

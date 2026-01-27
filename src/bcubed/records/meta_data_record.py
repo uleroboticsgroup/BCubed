@@ -39,7 +39,7 @@ class MetaDataRecord(BaseDataRecord):
             raise ValueError(
                 f"MetaDataRecord. {key} value is not valid: {value}")
 
-        elif key == self.__FIELD_RES_P and self._retrieve_type is False:
+        if key == self.__FIELD_RES_P and self._retrieve_type is False:
             raise ValueError(f"MetaDataRecord. {key} value can not be updated")
 
         super().__setitem__(key, value)

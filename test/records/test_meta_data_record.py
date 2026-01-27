@@ -48,7 +48,11 @@ class GivenAMetaDataRecord (TestCase):
 
         return super().tearDown()
 
-    def test_when_creating_record_then_its_values_are_default_ones(self):
+    def test_when_getting_data_then_their_values_are_the_default_ones(self):
+        """
+        Given a MetaDataRecord when getting data then their values are the default ones
+        """
+
         self.assertEqual(len(self.meta_data_record), self.DICTIONARY_LENGTH)
 
         self.assertEqual(
@@ -72,6 +76,10 @@ class GivenAMetaDataRecord (TestCase):
             self.meta_data_record[MetaDataFields.FIELD_BBN_V], DEFAULT_STRING_VALUE)
 
     def test_when_adding_new_key_then_it_is_not_added_and_an_exception_raises(self):
+        """
+        Given a MetaDataRecord when adding new key then it is not added and an exception raises
+        """
+
         with self.assertRaises(KeyError) as context:
             self.meta_data_record[TEST_STRING] = VALID_STRING_VALUE
 
@@ -81,6 +89,11 @@ class GivenAMetaDataRecord (TestCase):
             context.exception.args[0], BASE_DATA_RECORD_ID + NEW_KEYS_ERROR.format(TEST_STRING))
 
     def test_when_updating_key_value_with_invalid_value_then_it_is_not_updated_and_an_exception_raises(self):
+        """
+        Given a MetaDataRecord when updating key value with an invalid value then it is not updated and an exception
+        raises
+        """
+
         meta_data_fields = [
             MetaDataFields.FIELD_SYS_N,
             MetaDataFields.FIELD_SYS_V,
@@ -95,7 +108,8 @@ class GivenAMetaDataRecord (TestCase):
                     self.meta_data_record[field] = INVALID_STRING_VALUE
 
                 self.assertEqual(
-                    context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(field, INVALID_STRING_VALUE))
+                    context.exception.args[0],
+                    self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(field, INVALID_STRING_VALUE))
 
                 self.assertEqual(len(self.meta_data_record),
                                  self.DICTIONARY_LENGTH)
@@ -104,6 +118,10 @@ class GivenAMetaDataRecord (TestCase):
                     self.meta_data_record[field], DEFAULT_STRING_VALUE)
 
     def test_when_updating_key_value_with_valid_value_then_it_is_updated(self):
+        """
+        Given a MetaDataRecord when updating key value with a valid value then it is updated
+        """
+
         meta_data_fields = [
             MetaDataFields.FIELD_SYS_N,
             MetaDataFields.FIELD_SYS_V,
@@ -119,7 +137,11 @@ class GivenAMetaDataRecord (TestCase):
                 self.assertEqual(
                     self.meta_data_record[field], VALID_STRING_VALUE)
 
-    def test_when_updating_resP_key_value_then_it_is_not_updated_and_an_exception_raises(self):
+    def test_when_updating_responsible_key_value_then_it_is_not_updated_and_an_exception_raises(self):
+        """
+        Given a MetaDataRecord when updating resP key value then it is not updated and an exception raises
+        """
+
         with self.assertRaises(ValueError) as context:
             self.meta_data_record[self.FIELD_RES_P] = VALID_STRING_VALUE
 

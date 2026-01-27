@@ -11,6 +11,16 @@ import math
 import sys
 
 from web3 import Web3
+from web3.exceptions import (
+    BadFunctionCallOutput,
+    ContractLogicError,
+    Web3AttributeError,
+    Web3RPCError,
+    Web3TypeError,
+    Web3ValueError,
+)
+
+from eth_abi.exceptions import InsufficientDataBytes
 
 from bcubed.config.config import Config
 from bcubed.constants.config.config_categories import ConfigCategories
@@ -70,9 +80,13 @@ class Network:
         self.__chain_id = config.get_property(
             ConfigKeys.CHAIN_ID, ConfigCategories.NETWORK
         )
-        self.__account_address = config.get_property(
+        account_address = config.get_property(
             ConfigKeys.ACCOUNT_ADDRESS, ConfigCategories.NETWORK
         )
+
+        # It is needed to support different blockchain simulators
+        self.__account_address = self.__w3.to_checksum_address(account_address)
+
         self.__private_key = config.get_property(
             ConfigKeys.PRIVATE_KEY, ConfigCategories.NETWORK
         )
@@ -138,10 +152,27 @@ class Network:
                     transaction_container.contractAddress
                 )
 
-            except Exception as ex:
+            except Web3ValueError as ex:
                 self.__logger.critical(
-                    "Exception when trying to deploy contract: %s", ex
-                )
+                    "Web3ValueError when trying to deploy contract: %s", ex)
+
+                sys.exit()
+
+            except Web3AttributeError as ex:
+                self.__logger.critical(
+                    "Web3AttributeError when trying to deploy contract: %s", ex)
+
+                sys.exit()
+
+            except Web3TypeError as ex:
+                self.__logger.critical(
+                    "Web3TypeError when trying to deploy contract: %s", ex)
+
+                sys.exit()
+
+            except Web3RPCError as ex:
+                self.__logger.critical(
+                    "Web3RPCError when trying to deploy contract: %s", ex)
 
                 sys.exit()
 
@@ -192,16 +223,46 @@ class Network:
 
             self.__sign_and_send_raw_transaction(transaction)
 
-        except AttributeError as ex:
+        except Web3AttributeError as ex:
             self.__logger.error(
-                "AttributeError when storing new MD record: %s", ex)
+                "Web3AttributeError when storing new MD record: %s", ex)
 
             return False
 
-        except Exception as ex:
-            self.__logger.error("Exception when storing new MD record: %s", ex)
+        except Web3TypeError as ex:
+            self.__logger.error(
+                "Web3TypeError when storing new MD record: %s", ex)
 
             return False
+
+        except Web3RPCError as ex:
+            if 'Insufficient funds for gas * price + value' in ex.args[0]:
+                self.__logger.critical(
+                    "Web3RPCError when storing new MD record: %s", ex)
+                sys.exit()
+            else:
+                self.__logger.error(
+                    "Web3RPCError when storing new MD record: %s", ex)
+
+                return False
+
+        except ContractLogicError as ex:
+            self.__logger.critical(
+                "ContractLogicError when storing new MD record: %s", ex.message)
+
+            return False
+
+        except InsufficientDataBytes as ex:
+            self.__logger.critical(
+                "InsufficientDataBytes when storing new MD record: %s", ex)
+
+            sys.exit()
+
+        except BadFunctionCallOutput as ex:
+            self.__logger.critical(
+                "BadFunctionCallOutput when storing new MD record: %s", ex)
+
+            sys.exit()
 
         self.__logger.info("New MD record was stored")
         self.get_meta_data_record()
@@ -220,9 +281,29 @@ class Network:
             meta_data_record = from_contract_tuple_to_meta_data_record(
                 contract_tuple)
 
-        except Exception as ex:
-            self.__logger.error("Exception when getting MD record: %s", ex)
+        except Web3AttributeError as ex:
+            self.__logger.error(
+                "Web3AttributeError when getting MD record: %s", ex)
+
             return None
+
+        except Web3TypeError as ex:
+            self.__logger.error(
+                "Web3TypeError when getting MD record: %s", ex)
+
+            return None
+
+        except InsufficientDataBytes as ex:
+            self.__logger.critical(
+                "InsufficientDataBytes when getting new MD record: %s", ex)
+
+            sys.exit()
+
+        except BadFunctionCallOutput as ex:
+            self.__logger.critical(
+                "BadFunctionCallOutput when getting new MD record: %s", ex)
+
+            sys.exit()
 
         self.__logger.info("MD record was retrieved")
         self.__logger.info("%s", meta_data_record.to_string())
@@ -251,15 +332,33 @@ class Network:
 
             self.__sign_and_send_raw_transaction(transaction)
 
-        except AttributeError as ex:
+        except Web3AttributeError as ex:
             self.__logger.error(
-                "AttributeError when storing new SD records: %s", ex)
+                "Web3AttributeError when storing new SD records: %s", ex)
 
             return False
 
-        except Exception as ex:
+        except Web3TypeError as ex:
             self.__logger.error(
-                "Exception when storing new SD records: %s", ex)
+                "Web3TypeError when storing new SD records: %s", ex)
+
+            return False
+
+        except Web3RPCError as ex:
+            if 'Insufficient funds for gas * price + value' in ex.args[0]:
+                self.__logger.critical(
+                    "Web3RPCError when storing new SD records: %s", ex.message)
+                sys.exit()
+
+            else:
+                self.__logger.error(
+                    "Web3RPCError when storing new SD records: %s", ex.message)
+
+                return False
+
+        except ContractLogicError as ex:
+            self.__logger.error(
+                "ContractLogicError when storing new SD records: %s", ex.message)
 
             return False
 
@@ -288,9 +387,15 @@ class Network:
             system_data_records = from_contract_tuple_to_system_data_records(
                 contract_tuples)
 
-        except Exception as ex:
+        except Web3AttributeError as ex:
             self.__logger.error(
-                "Exception when getting SD records by timestamp: %s", ex
+                "Web3AttributeError when getting SD records by timestamp: %s", ex
+            )
+            return []
+
+        except Web3TypeError as ex:
+            self.__logger.error(
+                "Web3TypeError when getting SD records by timestamp: %s", ex
             )
             return []
 
@@ -308,7 +413,9 @@ class Network:
         contract_tuple = from_record_to_contract_tuple(overview_data_record)
 
         try:
-            transaction = self.__deployed_contract.functions.setOverviewDataRecord(tuple(contract_tuple.values())).build_transaction(
+            tuple_values = tuple(contract_tuple.values())
+            transaction = self.__deployed_contract.functions.setOverviewDataRecord(
+                tuple_values).build_transaction(
                 {
                     TRANSACTION_CHAIN_ID: self.__chain_id,
                     TRANSACTION_FROM: self.__account_address,
@@ -320,14 +427,33 @@ class Network:
 
             self.__sign_and_send_raw_transaction(transaction)
 
-        except AttributeError as ex:
+        except Web3AttributeError as ex:
             self.__logger.error(
-                "AttributeError when storing new OD record: %s", ex)
+                "Web3AttributeError when storing new OD record: %s", ex)
 
             return False
 
-        except Exception as ex:
-            self.__logger.error("Exception when storing new OD record: %s", ex)
+        except Web3TypeError as ex:
+            self.__logger.error(
+                "Web3TypeError when storing new OD record: %s", ex)
+
+            return False
+
+        except Web3RPCError as ex:
+            if 'Insufficient funds for gas * price + value' in ex.args[0]:
+                self.__logger.critical(
+                    "Web3RPCError when storing new OD record: %s", ex)
+                sys.exit()
+
+            else:
+                self.__logger.error(
+                    "Web3RPCError when storing new OD record: %s", ex)
+
+                return False
+
+        except ContractLogicError as ex:
+            self.__logger.error(
+                "ContractLogicError when storing new OD record: %s", ex.message)
 
             return False
 
@@ -348,8 +474,16 @@ class Network:
             overview_data_record = from_contract_tuple_to_overview_data_record(
                 contract_tuple)
 
-        except Exception as ex:
-            self.__logger.error("Exception when getting OD record: %s", ex)
+        except Web3AttributeError as ex:
+            self.__logger.error(
+                "Web3AttributeError when getting OD record: %s", ex)
+
+            return None
+
+        except Web3TypeError as ex:
+            self.__logger.error(
+                "Web3TypeError when getting OD record: %s", ex)
+
             return None
 
         self.__logger.info("OD record was retrieved")
@@ -377,10 +511,28 @@ class Network:
                 }
             )
 
-        except Exception as ex:
-            self.__logger.error("Exception when estimating gas: %s", ex)
+        except Web3AttributeError as ex:
+            self.__logger.error(
+                "Web3AttributeError when estimating gas: %s", ex)
 
             return 0
+
+        except Web3TypeError as ex:
+            self.__logger.error("Web3TypeError when estimating gas: %s", ex)
+
+            return 0
+
+        except Web3RPCError as ex:
+            self.__logger.error(
+                "Web3RPCError when estimating gas: %s", ex.message)
+
+            sys.exit()
+
+        except ContractLogicError as ex:
+            self.__logger.error(
+                "ContractLogicError when estimating gas: %s", ex.message)
+
+            sys.exit()
 
         self.__logger.debug("Estimated gas: %d", gas)
 
@@ -394,9 +546,15 @@ class Network:
         try:
             initial_timestamp = self.__deployed_contract.functions.getInitialTimestamp().call()
 
-        except Exception as ex:
+        except Web3AttributeError as ex:
             self.__logger.error(
-                "Exception when getting the initial timestamp: %s", ex)
+                "Web3AttributeError when getting the initial timestamp: %s", ex)
+
+            return 0
+
+        except Web3TypeError as ex:
+            self.__logger.error(
+                "Web3TypeError when getting the initial timestamp: %s", ex)
 
             return 0
 
@@ -412,9 +570,15 @@ class Network:
         try:
             final_timestamp = self.__deployed_contract.functions.getFinalTimestamp().call()
 
-        except Exception as ex:
+        except Web3AttributeError as ex:
             self.__logger.error(
-                "Exception when getting the final timestamp: %s", ex)
+                "Web3AttributeError when getting the final timestamp: %s", ex)
+
+            return 0
+
+        except Web3TypeError as ex:
+            self.__logger.error(
+                "Web3TypeError when getting the final timestamp: %s", ex)
 
             return 0
 

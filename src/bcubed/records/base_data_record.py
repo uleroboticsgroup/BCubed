@@ -111,7 +111,7 @@ class BaseDataRecord(dict):
         """
 
         for key, value in list(dictionary.items()):
-            if ((not isinstance(value, bool) and value in (0, "", None, b'')) or
+            if ((not isinstance(value, bool) and not isinstance(value, float) and value in (0, "", None, b'')) or
                     isinstance(value, dict) and len(value) == 0):
                 del dictionary[key]
             else:

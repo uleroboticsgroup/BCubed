@@ -55,7 +55,11 @@ class GivenAGenericSystemDataRecord (TestCase):
 
         return super().tearDown()
 
-    def test_when_creating_record_then_its_values_are_default_ones(self):
+    def test_when_getting_data_then_their_values_are_the_default_ones(self):
+        """
+        Given a GenericSystemDataRecord when getting data then their values are the default ones
+        """
+
         self.assertEqual(len(self.generic_system_data_record),
                          self.DICTIONARY_LENGTH)
 
@@ -86,6 +90,11 @@ class GivenAGenericSystemDataRecord (TestCase):
             self.generic_system_data_record[GenericSystemDataFields.FIELD_VALUE_3_FOU], b'')
 
     def test_when_creating_record_from_sd_record_with_val_f_then_its_values_are_sd_record_ones(self):
+        """
+        Given a GenericSystemDataRecord when creating record from SystemDataRecord with valF value then its values are
+        the SystemDataRecord ones
+        """
+
         system_data_record = SystemDataRecord()
         system_data_record[SystemDataFields.FIELD_SYS_T] = 1741007821
         system_data_record[SystemDataFields.FIELD_BAT_L] = 2
@@ -123,6 +132,11 @@ class GivenAGenericSystemDataRecord (TestCase):
             self.generic_system_data_record[GenericSystemDataFields.FIELD_VALUE_3_FOU], b'')
 
     def test_when_creating_record_from_sd_record_with_two_v_then_its_values_are_sd_record_ones(self):
+        """
+        Given a GenericSystemDataRecord when creating record from SystemDataRecord with twoV value then its values are
+        the SystemDataRecord ones
+        """
+
         system_data_record = SystemDataRecord()
         system_data_record[SystemDataFields.FIELD_SYS_T] = 1741007821
         system_data_record[SystemDataFields.FIELD_WIFI] = IdUint8ValueUint16Field(
@@ -152,7 +166,7 @@ class GivenAGenericSystemDataRecord (TestCase):
         self.assertEqual(
             self.generic_system_data_record[GenericSystemDataFields.FIELD_VALUE_TWO], b'x\x9c340\x00\x00\x01&\x00\x92')
         self.assertEqual(
-            self.generic_system_data_record[GenericSystemDataFields.FIELD_ID_FOU],  0)
+            self.generic_system_data_record[GenericSystemDataFields.FIELD_ID_FOU], 0)
         self.assertEqual(
             self.generic_system_data_record[GenericSystemDataFields.FIELD_VALUE_1_FOU], b'')
         self.assertEqual(
@@ -161,6 +175,11 @@ class GivenAGenericSystemDataRecord (TestCase):
             self.generic_system_data_record[GenericSystemDataFields.FIELD_VALUE_3_FOU], b'')
 
     def test_when_creating_record_from_sd_record_with_fou_v_then_its_values_are_sd_record_ones(self):
+        """
+        Given a GenericSystemDataRecord when creating record from SystemDataRecord with fouV value then its values are
+        the SystemDataRecord ones
+        """
+
         system_data_record = SystemDataRecord()
         system_data_record[SystemDataFields.FIELD_SYS_T] = 1741007821
         system_data_record[SystemDataFields.FIELD_ACC_V] = IdUint8ValueArrayUint16Field(
@@ -202,6 +221,10 @@ class GivenAGenericSystemDataRecord (TestCase):
             self.generic_system_data_record[GenericSystemDataFields.FIELD_VALUE_3_FOU], b'x\x9c3\x01\x00\x005\x005')
 
     def test_when_adding_new_key_then_it_is_not_added_and_an_exception_raises(self):
+        """
+        Given a GenericSystemDataRecord when adding new key then it is not added and an exception raises
+        """
+
         with self.assertRaises(KeyError) as context:
             self.generic_system_data_record[TEST_STRING] = TEST_STRING
 
@@ -212,6 +235,11 @@ class GivenAGenericSystemDataRecord (TestCase):
             context.exception.args[0], BASE_DATA_RECORD_ID + NEW_KEYS_ERROR.format(TEST_STRING))
 
     def test_when_updating_number_key_value_with_invalid_value_then_it_is_not_updated_and_an_exception_raises(self):
+        """
+        Given a GenericSystemDataRecord when updating number key value with an invalid value then it is not updated and
+        an exception raises
+        """
+
         with self.assertRaises(ValueError) as context:
             self.generic_system_data_record[SystemDataFields.FIELD_SYS_T] = INVALID_NUMBER_VALUE
 
@@ -222,15 +250,25 @@ class GivenAGenericSystemDataRecord (TestCase):
                          self.DICTIONARY_LENGTH)
 
         self.assertEqual(
-            context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(SystemDataFields.FIELD_SYS_T, INVALID_NUMBER_VALUE))
+            context.exception.args[0],
+            self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(SystemDataFields.FIELD_SYS_T, INVALID_NUMBER_VALUE))
 
     def test_when_updating_number_key_value_with_valid_value_then_it_is_updated(self):
+        """
+        Given a GenericSystemDataRecord when updating number key value with a valid value then it is updated
+        """
+
         self.generic_system_data_record[SystemDataFields.FIELD_SYS_T] = VALID_NUMBER_VALUE
 
         self.assertEqual(
             self.generic_system_data_record[SystemDataFields.FIELD_SYS_T], VALID_NUMBER_VALUE)
 
     def test_when_updating_string_key_value_with_invalid_value_then_it_is_not_updated_and_an_exception_raises(self):
+        """
+        Given a GenericSystemDataRecord when updating string key value with an invalid value then it is not updated and
+        an exception raises
+        """
+
         system_data_fields = [
             GenericSystemDataFields.FIELD_NAM_F
         ]
@@ -247,9 +285,14 @@ class GivenAGenericSystemDataRecord (TestCase):
                                  self.DICTIONARY_LENGTH)
 
                 self.assertEqual(
-                    context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(field, INVALID_STRING_VALUE))
+                    context.exception.args[0],
+                    self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(field, INVALID_STRING_VALUE))
 
     def test_when_updating_string_key_value_with_valid_value_then_it_is_updated(self):
+        """
+        Given a GenericSystemDataRecord when updating string key value with a valid value then it is updated
+        """
+
         system_data_fields = [
             GenericSystemDataFields.FIELD_NAM_F
         ]
@@ -261,7 +304,12 @@ class GivenAGenericSystemDataRecord (TestCase):
                 self.assertEqual(
                     self.generic_system_data_record[field], VALID_STRING_VALUE)
 
-    def test_when_updating_uint16_key_bytes_value_with_invalid_value_then_it_is_not_updated_and_an_exception_raises(self):
+    def test_when_updating_uint16_key_bytes_value_with_invalid_value_then_an_exception_raises(self):
+        """
+        Given a GenericSystemDataRecord when updating uint16 key value with an invalid value then it is not updated and
+        an exception raises
+        """
+
         with self.assertRaises(ValueError) as context:
             self.generic_system_data_record[GenericSystemDataFields.FIELD_VALUE_TWO] = VALID_NUMBER_VALUE
 
@@ -272,9 +320,14 @@ class GivenAGenericSystemDataRecord (TestCase):
                          self.DICTIONARY_LENGTH)
 
         self.assertEqual(
-            context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(GenericSystemDataFields.FIELD_VALUE_TWO, VALID_NUMBER_VALUE))
+            context.exception.args[0],
+            self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(GenericSystemDataFields.FIELD_VALUE_TWO, VALID_NUMBER_VALUE))
 
     def test_when_updating_uint16_key_bytes_value_with_valid_value_then_it_is_updated(self):
+        """
+        Given a GenericSystemDataRecord when updating uint16 key bytes value with a valid value then it is updated
+        """
+
         self.generic_system_data_record[GenericSystemDataFields.FIELD_ID_TWO] = VALID_NUMBER_VALUE
         self.generic_system_data_record[GenericSystemDataFields.FIELD_VALUE_TWO] = VALID_BYTE_VALUE
 
@@ -283,7 +336,12 @@ class GivenAGenericSystemDataRecord (TestCase):
         self.assertEqual(
             self.generic_system_data_record[GenericSystemDataFields.FIELD_VALUE_TWO], VALID_BYTE_VALUE)
 
-    def test_when_updating_uint16_key_array_bytes_value_with_invalid_value_then_it_is_not_updated_and_an_exception_raises(self):
+    def test_when_updating_uint16_key_array_bytes_value_with_invalid_value_then_an_exception_raises(self):
+        """
+        Given a GenericSystemDataRecord when updating uint16 key array bytes value with an invalid value then it is not
+        updated and an exception raises
+        """
+
         with self.assertRaises(ValueError) as context:
             self.generic_system_data_record[GenericSystemDataFields.FIELD_VALUE_1_FOU] = VALID_NUMBER_VALUE
 
@@ -294,9 +352,13 @@ class GivenAGenericSystemDataRecord (TestCase):
                          self.DICTIONARY_LENGTH)
 
         self.assertEqual(
-            context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(GenericSystemDataFields.FIELD_VALUE_1_FOU, VALID_NUMBER_VALUE))
+            context.exception.args[0],
+            self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(GenericSystemDataFields.FIELD_VALUE_1_FOU, VALID_NUMBER_VALUE))
 
     def test_when_updating_uint16_key_array_bytes_value_with_valid_value_then_it_is_updated(self):
+        """
+        Given a GenericSystemDataRecord when updating uint16 key array bytes value with a valid value then it is updated
+        """
 
         self.generic_system_data_record[GenericSystemDataFields.FIELD_ID_FOU] = VALID_NUMBER_VALUE
         self.generic_system_data_record[GenericSystemDataFields.FIELD_VALUE_1_FOU] = VALID_BYTE_VALUE
@@ -313,6 +375,10 @@ class GivenAGenericSystemDataRecord (TestCase):
             self.generic_system_data_record[GenericSystemDataFields.FIELD_VALUE_3_FOU], VALID_BYTE_VALUE)
 
     def test_when_setting_byte_value_and_getting_it_then_it_returns_value_as_string(self):
+        """
+        Given a GenericSystemDataRecord when setting byte value and getting it then it returns value as string
+        """
+
         self.generic_system_data_record[GenericSystemDataFields.FIELD_VAL_F] = VALID_BYTE_VALUE
 
         self.assertEqual(
@@ -321,6 +387,10 @@ class GivenAGenericSystemDataRecord (TestCase):
             self.generic_system_data_record[CommonDataFields.FIELD_FIE_N], 4)
 
     def test_when_printing_to_string_generic_system_data_record_then_it_prints_only_the_filled_data(self):
+        """
+        Given a GenericSystemDataRecord when printing to string the object then it prints only the filled data
+        """
+
         system_data_record = SystemDataRecord()
         system_data_record[SystemDataFields.FIELD_SYS_T] = 1741007821
         system_data_record[SystemDataFields.FIELD_BAT_L] = 2

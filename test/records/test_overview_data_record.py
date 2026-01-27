@@ -1,7 +1,7 @@
 """
 This is a class-containing module.
 
-It contains the GivenAOverviewDataRecord class, which inherits from TestCase and performs all the
+It contains the GivenAnOverviewDataRecord class, which inherits from TestCase and performs all the
 OverviewDataRecord tests.
 """
 
@@ -25,7 +25,7 @@ from bcubed.enumerates.record_type import RecordType
 from bcubed.records.overview_data_record import OverviewDataRecord
 
 
-class GivenAOverviewDataRecord (TestCase):
+class GivenAnOverviewDataRecord (TestCase):
     """
     It contains the test suite related with OverviewDataRecord class.
     Add tests as required.
@@ -44,7 +44,11 @@ class GivenAOverviewDataRecord (TestCase):
 
         return super().tearDown()
 
-    def test_when_creating_record_then_its_values_are_default_ones(self):
+    def test_when_getting_data_then_their_values_are_the_default_ones(self):
+        """
+        Given an OverviewDataRecord instance when getting data then their values are the default ones
+        """
+
         self.assertEqual(len(self.overview_data_record),
                          self.DICTIONARY_LENGTH)
 
@@ -63,6 +67,10 @@ class GivenAOverviewDataRecord (TestCase):
             self.overview_data_record[OverviewDataFields.FIELD_FIN_T], DEFAULT_NUMBER_VALUE)
 
     def test_when_adding_new_key_then_it_is_not_added_and_an_exception_raises(self):
+        """
+        Given an OverviewDataRecord instance when adding new key then it is not added and an exception raises
+        """
+
         with self.assertRaises(KeyError) as context:
             self.overview_data_record[TEST_STRING] = VALID_NUMBER_VALUE
 
@@ -73,6 +81,11 @@ class GivenAOverviewDataRecord (TestCase):
             context.exception.args[0], BASE_DATA_RECORD_ID + NEW_KEYS_ERROR.format(TEST_STRING))
 
     def test_when_updating_key_value_with_invalid_value_then_it_is_not_updated_and_an_exception_raises(self):
+        """
+        Given an OverviewDataRecord instance when updating key value with an invalid value then it is not updated and
+        an exception raises
+        """
+
         overview_data_fields = [
             OverviewDataFields.FIELD_BBT_R,
             OverviewDataFields.FIELD_INI_T,
@@ -91,9 +104,14 @@ class GivenAOverviewDataRecord (TestCase):
                     len(self.overview_data_record), self.DICTIONARY_LENGTH)
 
                 self.assertEqual(
-                    context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(field, INVALID_NUMBER_VALUE))
+                    context.exception.args[0],
+                    self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(field, INVALID_NUMBER_VALUE))
 
     def test_when_updating_key_value_with_valid_value_then_it_is_updated(self):
+        """
+        Given an OverviewDataRecord instance when updating key value with a valid value then it is updated
+        """
+
         overview_data_fields = [
             OverviewDataFields.FIELD_BBT_R,
             OverviewDataFields.FIELD_INI_T,

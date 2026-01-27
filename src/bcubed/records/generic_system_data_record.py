@@ -40,7 +40,7 @@ class GenericSystemDataRecord(BaseDataRecord):
                 if key in VAL_F_FIELDS:
                     val_f_str = str(system_data_record[key])
                     if ((val_f_str == "False" and system_data_record[CommonDataFields.FIELD_FIE_N] == 5) or
-                            (val_f_str != "" and val_f_str != "0" and val_f_str != "False")):
+                            (val_f_str not in ('', '0', 'False'))):
                         self[GenericSystemDataFields.FIELD_NAM_F] = key
                         self[GenericSystemDataFields.FIELD_VAL_F] = val_f_str
 

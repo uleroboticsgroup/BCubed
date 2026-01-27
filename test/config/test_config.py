@@ -53,40 +53,77 @@ class GivenAConfig (TestCase):
         return super().tearDown()
 
     def test_when_getting_another_config_instance_then_it_returns_the_same(self):
+        """
+        Given a Config instance when getting another config instance then it returns the same instance
+        """
+
         other_config = Config()
 
         self.assertEqual(self.config, other_config)
 
-    def test_when_getting_an_existent_property_then_it_returns_the_value(self):
+    def test_when_getting_an_existent_property_then_it_returns_its_value(self):
+        """
+        Given a Config instance when getting an existent property then it returns its value
+        """
+
         self.assertEqual(self.config.get_property(VALUE_1), VALUE_1)
 
-    def test_when_getting_an_existent_property_with_category_then_it_returns_the_value(self):
+    def test_when_getting_an_existent_property_with_category_then_it_returns_its_value(self):
+        """
+        Given a Config instance when getting an existent property with category then it returns its value
+        """
+
         self.assertEqual(self.config.get_property(
             VALUE_2, CATEGORY_1), CATEGORY_1_VALUE_2)
 
     def test_when_getting_a_non_existent_property_then_it_returns_none(self):
+        """
+        Given a Config instance when getting a non existent property then it returns none
+        """
+
         self.assertEqual(self.config.get_property(NON_EXISTENT), None)
 
     def test_when_getting_a_non_existent_property_with_category_then_it_returns_none(self):
+        """
+        Given a Config instance when getting an existent property with category then it returns none
+        """
+
         self.assertEqual(self.config.get_property(
             NON_EXISTENT, CATEGORY_1), None)
 
     def test_when_getting_a_property_with_non_existent_category_then_it_returns_none(self):
+        """
+        Given a Config instance when getting an existent property with non existent category then it returns none
+        """
+
         self.assertEqual(self.config.get_property(
             VALUE_1, NON_EXISTENT), None)
 
     def test_when_setting_a_property_then_it_stores_the_key_and_the_value(self):
+        """
+        Given a Config instance when setting a property then it stores the key and the value
+        """
+
         self.config.set_property(VALUE_3, VALUE_3)
 
         self.assertEqual(self.config.get_property(VALUE_3), VALUE_3)
 
     def test_when_setting_a_property_with_category_then_it_stores_the_key_and_the_value(self):
+        """
+        Given a Config instance when setting a property with category then it stores the key and the value
+        """
+
         self.config.set_property(VALUE_3, CATEGORY_1_VALUE_3, CATEGORY_1)
 
         self.assertEqual(self.config.get_property(
             VALUE_3, CATEGORY_1), CATEGORY_1_VALUE_3)
 
-    def test_when_setting_a_property_and_config_file_not_exist_then_default_one_is_created_and_it_stores_the_key_and_the_value(self):
+    def test_when_setting_property_and_config_file_doesnt_exist_then_it_is_created_storing_key_and_value(self):
+        """
+        Given a Config instance when setting a property and config file does not exist then it is created and the key
+        and the value are stored
+        """
+
         conf_file = Path(CONF_FILE_NAME)
         if conf_file.exists():
             os.remove(CONF_FILE_NAME)
@@ -95,6 +132,10 @@ class GivenAConfig (TestCase):
         self.assertEqual(self.config.get_property(VALUE_3), VALUE_3)
 
     def test_when_setting_a_property_and_the_config_file_has_bad_format_then_the_value_is_not_stored(self):
+        """
+        Given a Config instance when setting a property and the config file has bad format then the value is not stored
+        """
+
         with open(CONF_FILE_NAME, "a", encoding="utf-8") as file:
             file.write("h: t: c")
 
@@ -102,7 +143,11 @@ class GivenAConfig (TestCase):
 
         self.assertNotEqual(VALUE_2, self.config.get_property(VALUE_3))
 
-    def test_when_creating_config_without_config_file_then_it_logs_an_error_but_works(self):
+    def test_when_creating_config_instance_without_config_file_then_it_logs_an_error_but_works(self):
+        """
+        Given a Config instance when creating Config instance without config file then it logs an error but works
+        """
+
         Config.clear()
         os.environ["BCUBED_CONF_FILE"] = "invalid"
 
@@ -110,9 +155,15 @@ class GivenAConfig (TestCase):
             self.config = Config()
 
             self.assertEqual(
-                log.output[0], 'ERROR:' + CLASS_PATH + ':invalid file does not exist. A default empty one will be created.')
+                log.output[0],
+                'ERROR:' + CLASS_PATH + ':invalid file does not exist. A default empty one will be created.')
 
-    def test_when_creating_config_with_bad_format_config_file_then_it_log_an_error_but_works(self):
+    def test_when_creating_config_with_bad_format_config_file_then_it_logs_an_error_but_works(self):
+        """
+        Given a Config instance when creating Config instance with bad format config file then it logs an error but
+        works
+        """
+
         Config.clear()
 
         with open(CONF_FILE_NAME, "a", encoding="utf-8") as file:

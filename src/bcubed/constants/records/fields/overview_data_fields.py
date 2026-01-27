@@ -7,7 +7,7 @@ contain.
 """
 
 
-class OverviewDataFields:
+class OverviewDataFields:  # pylint: disable=too-few-public-methods
     """
     It contains only constants related to overview data record type fields. These constants define
     the field names that the overview data record type fields can contain.

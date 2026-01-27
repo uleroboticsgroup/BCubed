@@ -8,9 +8,10 @@ field called value, whose value is a number.
 
 from zlib import decompress
 from bcubed.constants.records.fields.id_value_fields import IdValueFields
+from bcubed.records.fields.base_id_field import BaseIdField
 
 
-class BaseIdNumberValueNumberField(dict):
+class BaseIdNumberValueNumberField(BaseIdField):
     """
     It contains the base dictionary that the id-number/value-number fields can contain and its key
     constraints. The key is the field name and the value is the field value.
@@ -20,20 +21,14 @@ class BaseIdNumberValueNumberField(dict):
     def __init__(self, initial_dictionary: dict = None):
         self.__initialize_field()
 
-        if initial_dictionary is None:
-            initial_dictionary = {}
-
-        for key in initial_dictionary:
-            self.__setitem__(key, initial_dictionary[key])
-
-        super().__init__()
+        super().__init__(initial_dictionary)
 
     def __setitem__(self, key: str, value):
         if key not in self:
             raise KeyError(
                 f"BaseIdNumberValueNumberField. New keys are not allowed {key}")
 
-        elif not isinstance(value, int):
+        if not isinstance(value, int) and not isinstance(value, float):
             raise ValueError(
                 f"BaseIdNumberValueNumberField. {key} value is not valid: {value}")
 
@@ -53,5 +48,14 @@ class BaseIdNumberValueNumberField(dict):
                 value != b''):
 
             value = int(decompress(value).decode())
+
+        return value
+
+    def _decompress_value_to_float(self, key: str, value):
+        if (key == IdValueFields.FIELD_VALUE and
+            isinstance(value, bytes) and
+                value != b''):
+
+            value = float(decompress(value).decode())
 
         return value

@@ -8,9 +8,10 @@ field called value, whose value is a string.
 
 from zlib import decompress
 from bcubed.constants.records.fields.id_value_fields import IdValueFields
+from bcubed.records.fields.base_id_field import BaseIdField
 
 
-class BaseIdNumberValueStringField(dict):
+class BaseIdNumberValueStringField(BaseIdField):
     """
     It contains the base dictionary that the id-number/value-string fields can contain and its key
     constraints. The key is the field name and the value is the field value.
@@ -20,24 +21,18 @@ class BaseIdNumberValueStringField(dict):
     def __init__(self, initial_dictionary: dict = None):
         self.__initialize_field()
 
-        if initial_dictionary is None:
-            initial_dictionary = {}
-
-        for key in initial_dictionary:
-            self.__setitem__(key, initial_dictionary[key])
-
-        super().__init__()
+        super().__init__(initial_dictionary)
 
     def __setitem__(self, key: str, value):
         if key not in self:
             raise KeyError(
                 f"BaseIdNumberValueStringField. New keys are not allowed {key}")
 
-        elif key == IdValueFields.FIELD_ID and not isinstance(value, int):
+        if key == IdValueFields.FIELD_ID and not isinstance(value, int):
             raise ValueError(
                 f"BaseIdNumberValueStringField. {key} value is not valid: {value}")
 
-        elif key is IdValueFields.FIELD_VALUE and not isinstance(value, str):
+        if key is IdValueFields.FIELD_VALUE and not isinstance(value, str):
             raise ValueError(
                 f"BaseIdNumberValueStringField. {key} value is not valid: {value}")
 

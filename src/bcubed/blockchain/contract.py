@@ -65,7 +65,7 @@ class Contract:
         Compiles the Solidity smart contracts and saves the compiled contract to a json file.
         """
 
-        self.__logger.info("Compiling smart contracts...")
+        self.__logger.info("Compiling smart contract...")
 
         # Get the smart contract
         smart_contract = os.path.join(

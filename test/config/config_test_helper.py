@@ -29,7 +29,7 @@ from bcubed.constants.config.config_keys import ConfigKeys
 class ConfigTestHelper():
     """
     Provides a common configuration for the Config instance to be used in the tests. This way there
-    is no duplicate code in each test that needs the Config instance. It also cleans up the 
+    is no duplicate code in each test that needs the Config instance. It also cleans up the
     singleton instance to provide a clean start.
     """
 
@@ -49,7 +49,7 @@ class ConfigTestHelper():
 
     def create_test_config_file(self):
         """
-        Creates a yaml configuration file with the categories, keys and values needed to set up 
+        Creates a yaml configuration file with the categories, keys and values needed to set up
         BCubed.
         Add categories, keys and values as required.
         """
@@ -102,7 +102,7 @@ class ConfigTestHelper():
     def tear_down(self):
         """
         Performs the TearDown actions on the Config instance. Removes the configuration file, if it
-        exists; sets the previous value of the BCUBED_CONF_FILE environment variable; and removes 
+        exists; sets the previous value of the BCUBED_CONF_FILE environment variable; and removes
         the contract json file, if it exists.
         """
 

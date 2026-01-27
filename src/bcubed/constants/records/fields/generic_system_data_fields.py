@@ -7,7 +7,7 @@ can contain.
 """
 
 
-class GenericSystemDataFields:
+class GenericSystemDataFields:  # pylint: disable=too-few-public-methods
     """
     It contains only constants related to generic system data fields. These constants define the
     field names that the generic system data record type fields can contain.

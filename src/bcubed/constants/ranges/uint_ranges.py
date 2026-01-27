@@ -5,7 +5,7 @@ It contains the UintRanges class, which defines the ranges of the unsigned integ
 """
 
 
-class UintRanges():
+class UintRanges():  # pylint: disable=too-few-public-methods
     """
     It contains the different unsigned integer type ranges.
     Add values as required.

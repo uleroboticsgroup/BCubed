@@ -69,9 +69,10 @@ class GivenAnIdUint8ValueInt16Field (TestCase):
         self.assertEqual(len(self.uint8_int16_field), self.DICTIONARY_LENGTH)
 
         self.assertEqual(
-            context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(IdValueFields.FIELD_ID, INVALID_NUMBER_VALUE))
+            context.exception.args[0],
+            self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(IdValueFields.FIELD_ID, INVALID_NUMBER_VALUE))
 
-    def test_when_updating_id_key_value_with_smaller_value_than_allowed_then_it_is_not_updated_and_an_exception_raises(self):
+    def test_when_updating_id_key_value_with_smaller_value_than_allowed_then_an_exception_raises(self):
         with self.assertRaises(ValueError) as context:
             self.uint8_int16_field[IdValueFields.FIELD_ID] = UintRanges.UINT8_MIN - 1
 
@@ -81,9 +82,10 @@ class GivenAnIdUint8ValueInt16Field (TestCase):
         self.assertEqual(len(self.uint8_int16_field), self.DICTIONARY_LENGTH)
 
         self.assertEqual(
-            context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(IdValueFields.FIELD_ID, UintRanges.UINT8_MIN - 1))
+            context.exception.args[0],
+            self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(IdValueFields.FIELD_ID, UintRanges.UINT8_MIN - 1))
 
-    def test_when_updating_id_key_value_with_greater_value_than_allowed_then_it_is_not_updated_and_an_exception_raises(self):
+    def test_when_updating_id_key_value_with_greater_value_than_allowed_then_an_exception_raises(self):
         with self.assertRaises(ValueError) as context:
             self.uint8_int16_field[IdValueFields.FIELD_ID] = UintRanges.UINT8_MAX + 1
 
@@ -93,7 +95,8 @@ class GivenAnIdUint8ValueInt16Field (TestCase):
         self.assertEqual(len(self.uint8_int16_field), self.DICTIONARY_LENGTH)
 
         self.assertEqual(
-            context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(IdValueFields.FIELD_ID, UintRanges.UINT8_MAX + 1))
+            context.exception.args[0],
+            self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(IdValueFields.FIELD_ID, UintRanges.UINT8_MAX + 1))
 
     def test_when_updating_id_key_value_with_valid_value_then_it_is_updated(self):
         self.uint8_int16_field[IdValueFields.FIELD_ID] = VALID_NUMBER_VALUE
@@ -101,7 +104,7 @@ class GivenAnIdUint8ValueInt16Field (TestCase):
         self.assertEqual(
             self.uint8_int16_field[IdValueFields.FIELD_ID], VALID_NUMBER_VALUE)
 
-    def test_when_updating_value_key_value_with_invalid_value_then_it_is_not_updated_and_an_exception_raises(self):
+    def test_when_updating_value_key_value_with_invalid_value_then_an_exception_raises(self):
         with self.assertRaises(ValueError) as context:
             self.uint8_int16_field[IdValueFields.FIELD_VALUE] = INVALID_NUMBER_VALUE
 
@@ -111,9 +114,10 @@ class GivenAnIdUint8ValueInt16Field (TestCase):
         self.assertEqual(len(self.uint8_int16_field), self.DICTIONARY_LENGTH)
 
         self.assertEqual(
-            context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(IdValueFields.FIELD_VALUE, INVALID_NUMBER_VALUE))
+            context.exception.args[0],
+            self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(IdValueFields.FIELD_VALUE, INVALID_NUMBER_VALUE))
 
-    def test_when_updating_value_key_value_with_smaller_value_than_allowed_then_it_is_not_updated_and_an_exception_raises(self):
+    def test_when_updating_value_key_value_with_smaller_value_than_allowed_then_an_exception_raises(self):
         with self.assertRaises(ValueError) as context:
             self.uint8_int16_field[IdValueFields.FIELD_VALUE] = IntRanges.INT16_MIN - 1
 
@@ -123,9 +127,10 @@ class GivenAnIdUint8ValueInt16Field (TestCase):
         self.assertEqual(len(self.uint8_int16_field), self.DICTIONARY_LENGTH)
 
         self.assertEqual(
-            context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(IdValueFields.FIELD_VALUE, IntRanges.INT16_MIN - 1))
+            context.exception.args[0],
+            self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(IdValueFields.FIELD_VALUE, IntRanges.INT16_MIN - 1))
 
-    def test_when_updating_value_key_value_with_greater_value_than_allowed_then_it_is_not_updated_and_an_exception_raises(self):
+    def test_when_updating_value_key_value_with_greater_value_than_allowed_then_an_exception_raises(self):
         with self.assertRaises(ValueError) as context:
             self.uint8_int16_field[IdValueFields.FIELD_VALUE] = IntRanges.INT16_MAX + 1
 
@@ -135,7 +140,8 @@ class GivenAnIdUint8ValueInt16Field (TestCase):
         self.assertEqual(len(self.uint8_int16_field), self.DICTIONARY_LENGTH)
 
         self.assertEqual(
-            context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(IdValueFields.FIELD_VALUE, IntRanges.INT16_MAX + 1))
+            context.exception.args[0],
+            self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(IdValueFields.FIELD_VALUE, IntRanges.INT16_MAX + 1))
 
     def test_when_updating_value_key_value_with_valid_value_then_it_is_updated(self):
         self.uint8_int16_field[IdValueFields.FIELD_VALUE] = VALID_NUMBER_VALUE

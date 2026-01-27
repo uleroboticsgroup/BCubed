@@ -31,10 +31,10 @@ class BCubed:
         self.__logger = Logger(
             self.__name + "-" + datetime.today().strftime('%Y-%m-%d'))
 
+        self.__setup()
+
         web3 = Web3(self.__provider)
         self.__node = Node(Network(web3), Contract())
-
-        self.__setup()
 
         self._logger.info("BCubed '%s' initialized.", self.__name)
 
