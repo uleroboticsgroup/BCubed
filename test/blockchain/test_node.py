@@ -7,12 +7,14 @@ Node tests.
 
 import logging
 import os
+from zlib import decompress
 
+from test.config.config_test_helper import ConfigTestHelper
 from unittest import TestCase
 from unittest.mock import MagicMock
 
 from bcubed.records.fields.id_uint8_value_float_field import IdUint8ValueFloatField
-from test.config.config_test_helper import ConfigTestHelper
+from bcubed.records.fields.id_uint8_value_string_field import IdUint8ValueStringField
 
 from bcubed.blockchain.contract import Contract
 from bcubed.blockchain.network import Network
@@ -20,6 +22,8 @@ from bcubed.blockchain.node import Node
 from bcubed.constants.records.fields.common_data_fields import CommonDataFields
 from bcubed.constants.records.fields.id_value_fields import IdValueFields
 from bcubed.constants.records.fields.system_data_fields import SystemDataFields
+from bcubed.constants.records.fields.generic_system_data_fields import GenericSystemDataFields
+from bcubed.records.generic_system_data_record import GenericSystemDataRecord
 from bcubed.records.system_data_record import SystemDataRecord
 from bcubed.records.fields.id_uint8_value_array_uint16_field import IdUint8ValueArrayUint16Field
 from bcubed.records.meta_data_record import MetaDataRecord
@@ -27,6 +31,7 @@ from bcubed.records.overview_data_record import OverviewDataRecord
 
 
 CLASS_PATH = 'bcubed.blockchain.node'
+LIMIT_INDIVIDUAL_SIZE = 25000
 
 
 class GivenANode(TestCase):
@@ -60,6 +65,9 @@ class GivenANode(TestCase):
         system_data_records_by_timestamp = [SystemDataRecord()]
         self.network.get_system_data_records_by_timestamp = MagicMock(
             return_value=system_data_records_by_timestamp)
+        system_data_records_timestamps = [1742384884]
+        self.network.get_system_data_records_timestamps = MagicMock(
+            return_value=system_data_records_timestamps)
 
         self.network.store_overview_data_record = MagicMock(return_value=True)
         overview_data_record = OverviewDataRecord()
@@ -123,21 +131,21 @@ class GivenANode(TestCase):
         with self.assertLogs(self.__logger, level="INFO") as log:
             system_data_record = SystemDataRecord()
             system_data_record[SystemDataFields.FIELD_SYS_X][IdValueFields.FIELD_ID] = 1
-            system_data_record[SystemDataFields.FIELD_SYS_X][IdValueFields.FIELD_VALUE] = "a" * 500 * 100000
+            system_data_record[SystemDataFields.FIELD_SYS_X][IdValueFields.FIELD_VALUE] = "a" * 25 * 1000000
 
             success = self.node.store_system_data_record(system_data_record)
 
-            self.assertFalse(success)
+            self.assertTrue(success)
 
             self.assertIn('INFO:' + CLASS_PATH +
-                          ':Invalid size:', log.output[0])
+                          ':Invalid size:', log.output[0], '. Splitting records.')
 
     def test_when_storing_sd_records_and_gas_is_more_than_limit_then_it_logs_a_critical(self):
         """
         Given a Node when storing SystemData records and gas is more than limit then it logs a critical
         """
 
-        self.network.get_estimated_gas = MagicMock(return_value=30000001)
+        self.network.get_estimated_gas = MagicMock(return_value=16772217)
 
         with self.assertLogs(self.__logger, level="CRITICAL") as log:
             success = self.node.store_system_data_record(SystemDataRecord())
@@ -145,7 +153,7 @@ class GivenANode(TestCase):
             self.assertFalse(success)
 
             self.assertEqual(
-                log.output[0], 'CRITICAL:' + CLASS_PATH + ':Invalid gas: 30000001')
+                log.output[0], 'CRITICAL:' + CLASS_PATH + ':Invalid gas: 16772217')
 
     def test_when_storing_sd_records_and_gas_cannot_be_calculated_then_it_logs_a_critical(self):
         """
@@ -169,7 +177,7 @@ class GivenANode(TestCase):
         Given a Node when storing SystemData records and gas is less than limit then it returns True
         """
 
-        self.network.get_estimated_gas = MagicMock(return_value=29999999)
+        self.network.get_estimated_gas = MagicMock(return_value=16772215)
 
         success = self.node.store_system_data_record(SystemDataRecord())
         self.assertTrue(success)
@@ -182,7 +190,7 @@ class GivenANode(TestCase):
         Given a Node when storing SystemData records with one value then it returns True
         """
 
-        self.network.get_estimated_gas = MagicMock(return_value=30000000)
+        self.network.get_estimated_gas = MagicMock(return_value=16772216)
 
         sd_record = SystemDataRecord()
         sd_record[SystemDataFields.FIELD_BAT_L] = 30
@@ -196,7 +204,7 @@ class GivenANode(TestCase):
         Given a Node when storing SystemData records with two values then it returns True
         """
 
-        self.network.get_estimated_gas = MagicMock(return_value=30000000)
+        self.network.get_estimated_gas = MagicMock(return_value=16772216)
 
         sd_record = SystemDataRecord()
         sd_record[SystemDataFields.FIELD_ACT_D] = IdUint8ValueFloatField(
@@ -206,12 +214,71 @@ class GivenANode(TestCase):
 
         self.assertTrue(success)
 
+    def test_when_splitting_system_data_record_then_the_split_records_are_correct(self):
+        """
+        Given a Node when splitting a SystemData record, then the split records are correct
+        """
+
+        huge_record = ("a" * 10000000) + ("b" * 5000000) + ("c" * 10000000)
+
+        sd_record = SystemDataRecord()
+        sd_record[SystemDataFields.FIELD_SYS_X] = IdUint8ValueStringField(
+            {IdValueFields.FIELD_ID: 1, IdValueFields.FIELD_VALUE: huge_record})
+
+        generic_sd_record = GenericSystemDataRecord(sd_record)
+        record_size = generic_sd_record.get_size()
+
+        chunk_length = (
+            (record_size // (LIMIT_INDIVIDUAL_SIZE - 10000)) + 1) * 2
+
+        split_records = self.node.split_system_data_record(
+            generic_sd_record, chunk_length)
+
+        self.assertEqual(chunk_length, len(split_records))
+
+        self.assertEqual(generic_sd_record[SystemDataFields.FIELD_SYS_T],
+                         split_records[0][SystemDataFields.FIELD_SYS_T])
+        self.assertEqual(generic_sd_record[SystemDataFields.FIELD_SYS_T],
+                         split_records[1][SystemDataFields.FIELD_SYS_T])
+        self.assertEqual(generic_sd_record[SystemDataFields.FIELD_SYS_T],
+                         split_records[2][SystemDataFields.FIELD_SYS_T])
+        self.assertEqual(generic_sd_record[SystemDataFields.FIELD_SYS_T],
+                         split_records[3][SystemDataFields.FIELD_SYS_T])
+
+        self.assertEqual(generic_sd_record[GenericSystemDataFields.FIELD_ID_TWO],
+                         split_records[0][GenericSystemDataFields.FIELD_ID_TWO])
+        self.assertEqual(generic_sd_record[GenericSystemDataFields.FIELD_ID_TWO],
+                         split_records[1][GenericSystemDataFields.FIELD_ID_TWO])
+        self.assertEqual(generic_sd_record[GenericSystemDataFields.FIELD_ID_TWO],
+                         split_records[2][GenericSystemDataFields.FIELD_ID_TWO])
+        self.assertEqual(generic_sd_record[GenericSystemDataFields.FIELD_ID_TWO],
+                         split_records[3][GenericSystemDataFields.FIELD_ID_TWO])
+
+        self.assertNotEqual(generic_sd_record[GenericSystemDataFields.FIELD_VALUE_TWO],
+                            split_records[0][GenericSystemDataFields.FIELD_VALUE_TWO])
+        self.assertNotEqual(generic_sd_record[GenericSystemDataFields.FIELD_VALUE_TWO],
+                            split_records[1][GenericSystemDataFields.FIELD_VALUE_TWO])
+        self.assertNotEqual(generic_sd_record[GenericSystemDataFields.FIELD_VALUE_TWO],
+                            split_records[2][GenericSystemDataFields.FIELD_VALUE_TWO])
+        self.assertNotEqual(generic_sd_record[GenericSystemDataFields.FIELD_VALUE_TWO],
+                            split_records[3][GenericSystemDataFields.FIELD_VALUE_TWO])
+
+        complete_value = decompress(split_records[0][GenericSystemDataFields.FIELD_VALUE_TWO]).decode()[2:] + \
+            decompress(
+                split_records[1][GenericSystemDataFields.FIELD_VALUE_TWO]).decode()[2:] + \
+            decompress(
+                split_records[2][GenericSystemDataFields.FIELD_VALUE_TWO]).decode()[2:] + \
+            decompress(
+                split_records[3][GenericSystemDataFields.FIELD_VALUE_TWO]).decode()[2:]
+
+        self.assertEqual(huge_record, complete_value)
+
     def test_when_storing_system_data_records_with_four_values_then_it_returns_true(self):
         """
         Given a Node when storing SystemData records with four values then it returns True
         """
 
-        self.network.get_estimated_gas = MagicMock(return_value=30000000)
+        self.network.get_estimated_gas = MagicMock(return_value=16772216)
 
         sd_record = SystemDataRecord()
         sd_record[SystemDataFields.FIELD_GYR_V] = IdUint8ValueArrayUint16Field({
@@ -296,7 +363,7 @@ class GivenANode(TestCase):
 
             self.assertEqual(
                 log.output[0],
-                'INFO:' + CLASS_PATH + ':Storing remaining SD records. Records: 5. Estimated gas: 100000\n')
+                'INFO:' + CLASS_PATH + ':Storing remaining SD records. Records: 5. Estimated gas: 100000')
 
     def test_when_creating_a_node_and_contract_is_already_compiled_then_it_is_not_compiled_again(self):
         """

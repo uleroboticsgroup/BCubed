@@ -129,7 +129,7 @@ class GivenANetwork(TestCase):
                                          (0, b''),
                                          (0, b'', b'', b'')),
                                         (1741095672, 1738144491428233467,
-                                         'wifi', b'x\x9csK\xcc)N\x05\x00\x05v\x01\xec',
+                                         'signs', b'x\x9csK\xcc)N\x05\x00\x05v\x01\xec',
                                          1, b'x\x9c340\x00\x00\x01&\x00\x92',
                                          0, b'', b'', b'')]
 
@@ -401,7 +401,7 @@ class GivenANetwork(TestCase):
         self.assertEqual(
             'Black Box Name', meta_data_record[MetaDataFields.FIELD_BBN_V])
         self.assertEqual(
-            'B650M-DS3H-23524', meta_data_record[MetaDataFields.FIELD_NET_N])
+            'B650M-DS3H-23524', meta_data_record[MetaDataFields.FIELD_NET_ID])
         self.assertEqual(
             'x86_64', meta_data_record[MetaDataFields.FIELD_OSY_T])
         self.assertEqual(
@@ -461,7 +461,7 @@ class GivenANetwork(TestCase):
 
         with self.assertLogs(self.__logger, level='ERROR') as log:
             self.network.store_system_data_records(
-                [GenericSystemDataRecord(SystemDataRecord())], 30000000)
+                [GenericSystemDataRecord(SystemDataRecord())], 16772215)
 
             self.assertEqual(
                 log.output[0], 'ERROR:' + CLASS_PATH + ':Web3TypeError when storing new SD records: Mocked exception')
@@ -475,7 +475,7 @@ class GivenANetwork(TestCase):
 
         system_data_records = [GenericSystemDataRecord(SystemDataRecord())]
         success = self.network.store_system_data_records(
-            system_data_records, 30000000)
+            system_data_records, 16772215)
 
         self.assertTrue(success)
 
@@ -594,9 +594,9 @@ class GivenANetwork(TestCase):
         self.assertEqual(
             1738144491428233467, system_data_records[7][SystemDataFields.FIELD_SYS_T])
         self.assertEqual(
-            1, system_data_records[7][SystemDataFields.FIELD_WIFI][IdValueFields.FIELD_ID])
+            1, system_data_records[7][SystemDataFields.FIELD_SIGNS][IdValueFields.FIELD_ID])
         self.assertEqual(
-            100, system_data_records[7][SystemDataFields.FIELD_WIFI][IdValueFields.FIELD_VALUE])
+            100, system_data_records[7][SystemDataFields.FIELD_SIGNS][IdValueFields.FIELD_VALUE])
 
     def test_when_storing_overview_data_record_with_function_defined_then_it_returns_true(self):
         self.network.deploy_contract(True, 'abi', 'byte_code')

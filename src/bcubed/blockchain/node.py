@@ -7,9 +7,11 @@ transactions.
 
 import logging
 import os
+import sys
 
 from pathlib import Path
-from zlib import decompress
+
+from zlib import decompressobj
 
 from bcubed.blockchain.network import Network
 from bcubed.blockchain.contract import Contract
@@ -25,9 +27,15 @@ from bcubed.records.overview_data_record import OverviewDataRecord
 from bcubed.utilities.parse_help import from_record_to_contract_tuple
 
 
-LIMIT_BLOCK_SIZE = 30000000
-LIMIT_INDIVIDUAL_SIZE = 45000
-MAX_EMPTY_RETRIES = 21
+# EIP-7825: 16777216-5000=16772216 (to ensure the transaction)
+LIMIT_TRANSACTION_CAP = 16772216
+LIMIT_INDIVIDUAL_SIZE = 25000
+
+BCUBED_DEBUG_MODE = 'BCUBED_DEBUG_MODE'
+DEBUG_MODE = os.getenv(
+    BCUBED_DEBUG_MODE, 'False').lower() in ('true', '1', 't')
+TIMESTAMP_START_DEBUG = 0
+TIMESTAMP_END_DEBUG = 2051226000000
 
 
 class Node:
@@ -49,6 +57,10 @@ class Node:
         self.__setup()
 
         self.__logger.info("%s is initialized", __class__.__name__)
+
+        if DEBUG_MODE is True:
+            self.__logger.info('DEBUG MODE ON')
+            self.__sum = 0
 
     def __del__(self):
         self.__store_remaining_system_data_records()
@@ -96,7 +108,7 @@ class Node:
     def __store_remaining_system_data_records(self):
         if len(self.__system_data_records) > 0:
             self.__logger.info(
-                "Storing remaining SD records. Records: %d. Estimated gas: %d\n",
+                "Storing remaining SD records. Records: %d. Estimated gas: %d",
                 len(self.__system_data_records),
                 self.__total_estimated_gas,
             )
@@ -115,15 +127,6 @@ class Node:
 
     def __get_data_to_split(self, system_data_record: GenericSystemDataRecord):
 
-        def __decompress_value(key, value):
-            if isinstance(value, bytes):
-                if value != b'':
-                    value = decompress(value).decode()
-                else:
-                    value = ""
-
-            return key, value
-
         # Get the information
         data = dict(
             (i, system_data_record[i]) for i in system_data_record
@@ -134,27 +137,37 @@ class Node:
                      GenericSystemDataFields.FIELD_VALUE_1_FOU,
                      GenericSystemDataFields.FIELD_VALUE_2_FOU,
                      GenericSystemDataFields.FIELD_VALUE_3_FOU])
-        data = dict(map(__decompress_value, data, data.values()))
 
         return data
 
-    def __split_system_data_record(
-            self, system_data_record: GenericSystemDataRecord, chunk_length: int, chunk_size: int):
+    def split_system_data_record(
+            self, system_data_record: GenericSystemDataRecord, chunk_length: int):
 
         data = self.__get_data_to_split(system_data_record)
+
+        # Get the longest string
+        longest_str = 0
+        for field, value in data.items():
+            if isinstance(value, bytes) and len(value) > longest_str:
+                longest_str = len(value)
+
+        chunk_size = (longest_str // chunk_length) + 1
+
         system_data_records = []
-
         for index in range(chunk_length):
-            sd_record = GenericSystemDataRecord(system_data_record)
+            system_data_records.append(
+                GenericSystemDataRecord(system_data_record))
 
-            for d in data.keys():
-                if isinstance(data[d], str) and data[d] != '':
-                    sd_record[d] = data[d][(
-                        index * chunk_size):((index + 1) * chunk_size)]
-                elif isinstance(data[d], int) and (index == 0):
-                    sd_record[d] = data[d]
+        for field, value in data.items():
+            dco = decompressobj()
+            for index in range(chunk_length):
+                if isinstance(value, bytes) and value != b'':
+                    raw_chunk = value[(index * chunk_size):((index + 1) * chunk_size)]
+                    decompress_decoded_value = dco.decompress(
+                        raw_chunk).decode()
 
-            system_data_records.append(sd_record)
+                    system_data_records[index][field] = f"{index};" + \
+                        decompress_decoded_value
 
         return system_data_records
 
@@ -180,10 +193,68 @@ class Node:
 
         return self.__network.get_meta_data_record()
 
+    def __split_huge_record_and_send_new_sd_records_to_store(
+            self, generic_sd_record: GenericSystemDataRecord, record_size: int):
+
+        # It is necessary to add one because if it returns 4.97, it is rounded down to 4 when
+        # it should be rounded up to 5. To ensure the chunks are the correct size, they are
+        # multiplied by 2. If not multiplied by 2, then Exception is raised: 'execution
+        # reverted: transaction gas limit (<gas>) is greater than the cap (16777216)'.
+        chunk_length = (
+            (record_size // (LIMIT_INDIVIDUAL_SIZE - 10000)) + 1) * 2
+
+        split_records = self.split_system_data_record(
+            generic_sd_record, chunk_length)
+
+        stored = True
+        for record in split_records:
+            stored = stored and self.store_system_data_record(record)
+
+        return stored
+
+    def __manage_system_data_record_storage_depending_on_gas(self, gas: int, contract_tuple: dict):
+        stored = False
+
+        if gas == 0:
+            self.__logger.critical(
+                "Estimated gas cannot be calculated. Probably, the size of the message is too big.")
+
+            return stored
+
+        if gas + self.__total_estimated_gas > LIMIT_TRANSACTION_CAP:
+            self.__network.store_system_data_records(
+                self.__system_data_records, self.__total_estimated_gas
+            )
+
+            if DEBUG_MODE is True:
+                self.__sum = self.__sum + \
+                    len(self.__system_data_records)
+
+                tmp_sd_records = self.get_system_data_records_by_timestamp(
+                    TIMESTAMP_START_DEBUG, TIMESTAMP_END_DEBUG)
+
+                if len(tmp_sd_records) != self.__sum:
+                    for record in self.__system_data_records:
+                        self.__logger.critical(
+                            "Missing record: %s", str(record)[:200])
+
+                        sys.exit(1)
+
+            self.__system_data_records.clear()
+            self.__total_estimated_gas = gas
+
+        else:
+            self.__total_estimated_gas = self.__total_estimated_gas + gas
+
+        self.__system_data_records.append(contract_tuple)
+        stored = True
+
+        return stored
+
     def store_system_data_record(self, system_data_record: SystemDataRecord):
         """
         Appends the System Data record to the __system_data_records list. When the list size reaches
-        the LIMIT_BLOCK_SIZE, it sends the list to the blockchain network for storage.
+        the LIMIT_TRANSACTION_CAP, it sends the list to the blockchain network for storage.
         Returns True if it is stored on the list or on the blockchain, and False if the block is not
         stored in the blockchain.
         """
@@ -191,53 +262,30 @@ class Node:
         stored = False
 
         generic_sd_record = GenericSystemDataRecord(system_data_record)
-
         record_size = generic_sd_record.get_size()
 
         if record_size > LIMIT_INDIVIDUAL_SIZE:
-            self.__logger.info("Invalid size: %d", record_size)
+            self.__logger.info(
+                "Invalid size: %d. Splitting records.", record_size)
             self.__logger.info(system_data_record.to_string()[:200])
 
-            chunk_length = (record_size // (LIMIT_INDIVIDUAL_SIZE - 5000)) + 1
-            chunk_size = (record_size // chunk_length) + 1
-
-            splitted_records = self.__split_system_data_record(
-                generic_sd_record, chunk_length, chunk_size)
-
-            for records in splitted_records:
-                self.__logger.info("Sending to store splitted records...")
-                self.store_system_data_record(records)
+            stored = self.__split_huge_record_and_send_new_sd_records_to_store(
+                generic_sd_record, record_size)
 
         else:
             contract_tuple = from_record_to_contract_tuple(generic_sd_record)
-
             gas = self.__network.get_estimated_gas([contract_tuple])
 
-            if gas > LIMIT_BLOCK_SIZE:
+            if gas > LIMIT_TRANSACTION_CAP:
                 self.__logger.critical("Invalid gas: %d", gas)
 
-            elif gas != 0:
-                if gas + self.__total_estimated_gas > LIMIT_BLOCK_SIZE:
-                    self.__network.store_system_data_records(
-                        self.__system_data_records, self.__total_estimated_gas
-                    )
+                if DEBUG_MODE is True:
+                    sys.exit(1)
 
-                    self.__system_data_records.clear()
+                return stored
 
-                    self.__system_data_records.append(contract_tuple)
-                    self.__total_estimated_gas = gas
-
-                    stored = True
-
-                else:
-                    self.__system_data_records.append(contract_tuple)
-                    self.__total_estimated_gas = self.__total_estimated_gas + gas
-
-                    stored = True
-
-            else:
-                self.__logger.critical(
-                    "Estimated gas cannot be calculated. Probably, the size of the message is too big.")
+            stored = self.__manage_system_data_record_storage_depending_on_gas(
+                gas, contract_tuple)
 
         return stored
 
@@ -256,19 +304,17 @@ class Node:
                 "MAX timestamp must be greater than MIN timestamp")
             return system_data_records
 
-        max_empty_retries = 0
+        system_data_records_timestamps = self.__network.get_system_data_records_timestamps()
 
-        while min_timestamp <= max_timestamp and max_empty_retries < MAX_EMPTY_RETRIES:
+        filtered_timestamps = [timestamp for timestamp in system_data_records_timestamps if timestamp >=
+                               min_timestamp and timestamp <= max_timestamp]
+
+        for timestamp in filtered_timestamps:
             new_sd_records = self.__network.get_system_data_records_by_timestamp(
-                min_timestamp)
+                timestamp)
 
             if len(new_sd_records) != 0:
                 system_data_records.extend(new_sd_records)
-                max_empty_retries = 0
-            else:
-                max_empty_retries = max_empty_retries + 1
-
-            min_timestamp = min_timestamp + 1
 
         self.__logger.info("%s SD records were retrieved.",
                            len(system_data_records))

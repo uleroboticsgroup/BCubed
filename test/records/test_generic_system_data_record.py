@@ -139,7 +139,7 @@ class GivenAGenericSystemDataRecord (TestCase):
 
         system_data_record = SystemDataRecord()
         system_data_record[SystemDataFields.FIELD_SYS_T] = 1741007821
-        system_data_record[SystemDataFields.FIELD_WIFI] = IdUint8ValueUint16Field(
+        system_data_record[SystemDataFields.FIELD_SIGNS] = IdUint8ValueUint16Field(
             {IdValueFields.FIELD_ID: 1, IdValueFields.FIELD_VALUE: 100})
 
         self.generic_system_data_record = GenericSystemDataRecord(
@@ -158,7 +158,7 @@ class GivenAGenericSystemDataRecord (TestCase):
         self.assertEqual(
             self.generic_system_data_record[SystemDataFields.FIELD_SYS_T], 1741007821)
         self.assertEqual(
-            self.generic_system_data_record[GenericSystemDataFields.FIELD_NAM_F], SystemDataFields.FIELD_WIFI)
+            self.generic_system_data_record[GenericSystemDataFields.FIELD_NAM_F], SystemDataFields.FIELD_SIGNS)
         self.assertEqual(
             self.generic_system_data_record[GenericSystemDataFields.FIELD_VAL_F], DEFAULT_BYTE_VALUE)
         self.assertEqual(

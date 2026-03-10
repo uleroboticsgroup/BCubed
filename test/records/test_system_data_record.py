@@ -104,7 +104,7 @@ class GivenASystemDataRecord (TestCase):
         self.assertEqual(
             self.system_data_record[SystemDataFields.FIELD_TXT_R], DEFAULT_STRING_VALUE)
         self.assertEqual(
-            self.system_data_record[SystemDataFields.FIELD_WIFI], IdUint8ValueUint16Field())
+            self.system_data_record[SystemDataFields.FIELD_SIGNS], IdUint8ValueUint16Field())
         self.assertEqual(
             self.system_data_record[SystemDataFields.FIELD_SYS_X], IdUint8ValueStringField())
 
@@ -432,12 +432,12 @@ class GivenASystemDataRecord (TestCase):
         """
 
         with self.assertRaises(ValueError) as context:
-            self.system_data_record[SystemDataFields.FIELD_WIFI] = VALID_NUMBER_VALUE
+            self.system_data_record[SystemDataFields.FIELD_SIGNS] = VALID_NUMBER_VALUE
 
         self.assertEqual(
-            self.system_data_record[SystemDataFields.FIELD_WIFI], IdUint8ValueUint16Field())
+            self.system_data_record[SystemDataFields.FIELD_SIGNS], IdUint8ValueUint16Field())
 
         self.assertEqual(len(self.system_data_record), self.DICTIONARY_LENGTH)
 
         self.assertEqual(context.exception.args[0], self.CLASS_ID + VALUE_NOT_VALID_ERROR.format(
-            SystemDataFields.FIELD_WIFI, VALID_NUMBER_VALUE))
+            SystemDataFields.FIELD_SIGNS, VALID_NUMBER_VALUE))

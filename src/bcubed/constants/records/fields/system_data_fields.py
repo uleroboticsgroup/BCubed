@@ -32,7 +32,7 @@ class SystemDataFields:  # pylint: disable=too-few-public-methods
     FIELD_CAM_F = 'camF'
     FIELD_TXT_C = 'txtC'
     FIELD_TXT_R = 'txtR'
-    FIELD_WIFI = 'wifi'
+    FIELD_SIGNS = 'signs'
     FIELD_SYS_X = 'sysX'
     FIELD_RAM_D = 'ramD'
     FIELD_SWP_D = 'swpD'
@@ -60,7 +60,7 @@ TWO_V_FIELDS = [
     SystemDataFields.FIELD_MIC_I,
     SystemDataFields.FIELD_CAM_F,
     SystemDataFields.FIELD_SYS_X,
-    SystemDataFields.FIELD_WIFI,
+    SystemDataFields.FIELD_SIGNS,
 ]
 
 FOU_V_FIELDS = [

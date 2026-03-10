@@ -31,7 +31,7 @@ class SystemDataFieldTypes:  # pylint: disable=too-few-public-methods
     TYPE_CAM_F = ["string", "uint16", "bytes"]
     TYPE_TXT_C = ["string", "bytes"]
     TYPE_TXT_R = ["string", "bytes"]
-    TYPE_WIFI = ["string", "uint16", "bytes"]
+    TYPE_SIGNS = ["string", "uint16", "bytes"]
     TYPE_SYS_X = ["string", "uint16", "bytes"]
 
     TYPE_RAM_D = ["string", "bytes"]

@@ -43,7 +43,7 @@ class Logger:
         log_formatter.converter = time.gmtime  # UTC time
 
         log_file_handler = handlers.RotatingFileHandler(
-            log_name, maxBytes=10240000, backupCount=5)
+            log_name, maxBytes=10240000, backupCount=10)
         log_file_handler.setFormatter(log_formatter)
 
         log_terminal_handler = logging.StreamHandler()

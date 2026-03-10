@@ -19,6 +19,6 @@ class MetaDataFields:  # pylint: disable=too-few-public-methods
     FIELD_SYS_S = 'sysS'
     FIELD_SYS_M = 'sysM'
     FIELD_BBN_V = 'bbnV'
-    FIELD_NET_N = 'netN'
+    FIELD_NET_ID = 'netID'
     FIELD_OSY_T = 'osyT'
     FIELD_SYS_P = 'sysP'

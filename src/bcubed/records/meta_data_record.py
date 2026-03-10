@@ -32,7 +32,7 @@ class MetaDataRecord(BaseDataRecord):
             MetaDataFields.FIELD_SYS_S,
             MetaDataFields.FIELD_SYS_M,
             MetaDataFields.FIELD_BBN_V,
-            MetaDataFields.FIELD_NET_N,
+            MetaDataFields.FIELD_NET_ID,
             MetaDataFields.FIELD_OSY_T,
             MetaDataFields.FIELD_SYS_P
         ) and not isinstance(value, str):
@@ -53,7 +53,7 @@ class MetaDataRecord(BaseDataRecord):
                 MetaDataFields.FIELD_SYS_M: "",
                 self.__FIELD_RES_P: responsible,
                 MetaDataFields.FIELD_BBN_V: "",
-                MetaDataFields.FIELD_NET_N: "",
+                MetaDataFields.FIELD_NET_ID: "",
                 MetaDataFields.FIELD_OSY_T: "",
                 MetaDataFields.FIELD_SYS_P: ""
             }

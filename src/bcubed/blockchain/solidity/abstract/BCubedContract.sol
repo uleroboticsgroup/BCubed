@@ -7,21 +7,21 @@ contract BCubedContract {
     address private immutable OWNER_ADDRESS;
 
         struct MetaDataRecord {
-        uint256     recT;
+        uint64      recT;
         string      sysN;
         string      sysV;
         string      sysS;
         string      sysM;
         string      resP;
         string      bbnV;
-        string      netN;
+        string      netID;
         string      osyT;
         string      sysP;
     }
 
     struct SystemDataRecord {
-        uint256 recT;
-        uint256 sysT;
+        uint64  recT;
+        uint64  sysT;
         string  namF;
         bytes   valF;
 
@@ -35,20 +35,22 @@ contract BCubedContract {
     }
 
     struct OverviewDataRecord {
-        uint256     recT;
+        uint64      recT;
         uint256     bbtR;
-        uint256     iniT;
-        uint256     finT;
+        uint64      iniT;
+        uint64      finT;
     }
 
     MetaDataRecord private metaDataRecord;
     OverviewDataRecord private overviewDataRecord;
-    mapping(uint256 => SystemDataRecord[]) private systemDataRecords;
+    mapping(uint64 => SystemDataRecord[]) private systemDataRecords;
+
+    uint64[] private systemDataRecordKeys;
 
     uint256 nStoredRecords = 0;
     
-    uint256 initialTimestamp = 2051226000; // 1/1/2035 - 01:00:00
-    uint256 finalTimestamp = 0;
+    uint64 initialTimestamp = 2051226000000; // 1/1/2035 - 01:00:00:00
+    uint64 finalTimestamp = 0;
 
 
     // Set the transaction sender as the owner of the contract.
@@ -64,7 +66,7 @@ contract BCubedContract {
         _;
     }
 
-    modifier commonRequires(uint256 recT) {
+    modifier commonRequires(uint64 recT) {
         require(overviewDataRecord.recT == 0, 
             "OD record is already created. The Black Box cannot add more information. It is needed to create a new one.");
 
@@ -82,7 +84,7 @@ contract BCubedContract {
         require(keccak256(abi.encodePacked(newMetaDataRecord.sysM)) != keccak256(abi.encodePacked("")), "The sysM field is required.");
         require(keccak256(abi.encodePacked(newMetaDataRecord.resP)) != keccak256(abi.encodePacked("")), "The resP field is required.");
         require(keccak256(abi.encodePacked(newMetaDataRecord.bbnV)) != keccak256(abi.encodePacked("")), "The bbnV field is required.");
-        require(keccak256(abi.encodePacked(newMetaDataRecord.netN)) != keccak256(abi.encodePacked("")), "The netN field is required.");
+        require(keccak256(abi.encodePacked(newMetaDataRecord.netID)) != keccak256(abi.encodePacked("")), "The netID field is required.");
         require(keccak256(abi.encodePacked(newMetaDataRecord.osyT)) != keccak256(abi.encodePacked("")), "The osyT field is required.");
         require(keccak256(abi.encodePacked(newMetaDataRecord.sysP)) != keccak256(abi.encodePacked("")), "The sysP field is required.");
 
@@ -92,6 +94,10 @@ contract BCubedContract {
 
     function getMetaDataRecord() public view returns (MetaDataRecord memory) {
         return metaDataRecord;
+    }
+
+    function getSystemDataRecordKeys() public view returns (uint64[] memory) {
+        return systemDataRecordKeys;
     }
 
     function addSystemDataRecord(SystemDataRecord memory newSystemDataRecord) private 
@@ -119,8 +125,10 @@ contract BCubedContract {
                 "If fouV is filled, then valF and twoV fields cannot be filled.");
         }
 
-        uint256 systemTimestamp = newSystemDataRecord.sysT/1000000000;
+        uint64 systemTimestamp = newSystemDataRecord.sysT/1000000;
         systemDataRecords[systemTimestamp].push(newSystemDataRecord);
+
+        systemDataRecordKeys.push(systemTimestamp);
 
         nStoredRecords += 1;
 
@@ -136,7 +144,7 @@ contract BCubedContract {
         }
     }
 
-    function getSystemDataRecordsByTimestamp(uint256 _timestamp) public view returns (SystemDataRecord[] memory) {
+    function getSystemDataRecordsByTimestamp(uint64 _timestamp) public view returns (SystemDataRecord[] memory) {
         return systemDataRecords[_timestamp];
     }
 
@@ -163,11 +171,11 @@ contract BCubedContract {
         return nStoredRecords;
     }
 
-    function getInitialTimestamp() public view returns (uint256) {
+    function getInitialTimestamp() public view returns (uint64) {
         return initialTimestamp;
     }
 
-    function getFinalTimestamp() public view returns (uint256) {
+    function getFinalTimestamp() public view returns (uint64) {
         return finalTimestamp;
     }
 }

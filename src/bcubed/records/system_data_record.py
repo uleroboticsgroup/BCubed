@@ -126,7 +126,7 @@ class SystemDataRecord(BaseDataRecord):
         ) and not isinstance(value, IdUint8ValueStringField)
 
     def __is_valid_uint8_uint8_value(self, key: str, value):
-        return key == SystemDataFields.FIELD_WIFI and not isinstance(value, IdUint8ValueUint16Field)
+        return key == SystemDataFields.FIELD_SIGNS and not isinstance(value, IdUint8ValueUint16Field)
 
     def __initialize_data_record(self):
         self.update(
@@ -147,7 +147,7 @@ class SystemDataRecord(BaseDataRecord):
                 SystemDataFields.FIELD_CAM_F: IdUint8ValueStringField(),
                 SystemDataFields.FIELD_TXT_C: "",
                 SystemDataFields.FIELD_TXT_R: "",
-                SystemDataFields.FIELD_WIFI: IdUint8ValueUint16Field(),
+                SystemDataFields.FIELD_SIGNS: IdUint8ValueUint16Field(),
                 SystemDataFields.FIELD_SYS_X: IdUint8ValueStringField(),
                 SystemDataFields.FIELD_RAM_D: "",
                 SystemDataFields.FIELD_SWP_D: "",

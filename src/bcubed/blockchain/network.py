@@ -43,8 +43,6 @@ TRANSACTION_FROM = 'from'
 TRANSACTION_MAX_FEE_PER_GAS = 'maxFeePerGas'
 TRANSACTION_NONCE = 'nonce'
 
-BLOCK_GAS_LIMIT = 30000000
-
 
 class Network:
     """
@@ -326,7 +324,7 @@ class Network:
                     TRANSACTION_NONCE: self.__w3.eth.get_transaction_count(
                         self.__account_address
                     ),
-                    TRANSACTION_GAS: estimated_gas + 1000,
+                    TRANSACTION_GAS: estimated_gas,
                 }
             )
 
@@ -348,6 +346,12 @@ class Network:
             if 'Insufficient funds for gas * price + value' in ex.args[0]:
                 self.__logger.critical(
                     "Web3RPCError when storing new SD records: %s", ex.message)
+
+                self.__logger.critical(
+                    "Account balance: %s | Gas price: %s",
+                    self.get_account_balance(),
+                    self.__w3.eth.gas_price)
+
                 sys.exit()
 
             else:
@@ -362,14 +366,37 @@ class Network:
 
             return False
 
-        self.__logger.info(
-            "New %d SD records were stored", len(system_data_records)
-        )
+        self.__logger.info("New %d SD records were stored Estimated gas: %d",
+                           len(system_data_records), estimated_gas)
 
-        self.__logger.debug(
-            "Stored field names are: %s", get_field_names_from_system_data_records(system_data_records))
+        self.__logger.debug("Stored field names are: %s",
+                            get_field_names_from_system_data_records(system_data_records))
 
         return True
+
+    def get_system_data_records_timestamps(self):
+        """
+        Calls to the contract method getSystemDataRecordKeys to retrieve the systemDataRecord keys
+        (timestamps) of the stored system data records.
+        """
+
+        try:
+            system_data_record_keys = self.__deployed_contract.functions.getSystemDataRecordKeys().call()
+            unique_timestamps_sorted = sorted(set(system_data_record_keys))
+
+        except Web3AttributeError as ex:
+            self.__logger.error(
+                "Web3AttributeError when getting SD records by timestamp: %s", ex
+            )
+            return []
+
+        except Web3TypeError as ex:
+            self.__logger.error(
+                "Web3TypeError when getting SD records by timestamp: %s", ex
+            )
+            return []
+
+        return unique_timestamps_sorted
 
     def get_system_data_records_by_timestamp(
         self, timestamp: int
@@ -398,9 +425,6 @@ class Network:
                 "Web3TypeError when getting SD records by timestamp: %s", ex
             )
             return []
-
-        for system_data_record in system_data_records:
-            self.__logger.info("%s", system_data_record.to_string())
 
         return system_data_records
 
@@ -504,12 +528,10 @@ class Network:
         """
 
         try:
-            gas = self.__deployed_contract.functions.addSystemDataRecords(tuple(system_data_records)).estimate_gas(
-                {
-                    TRANSACTION_CHAIN_ID: self.__chain_id,
-                    TRANSACTION_FROM: self.__account_address,
-                }
-            )
+            gas = self.__deployed_contract.functions.addSystemDataRecords(tuple(system_data_records)).estimate_gas({
+                TRANSACTION_CHAIN_ID: self.__chain_id,
+                TRANSACTION_FROM: self.__account_address,
+            })
 
         except Web3AttributeError as ex:
             self.__logger.error(
@@ -526,13 +548,13 @@ class Network:
             self.__logger.error(
                 "Web3RPCError when estimating gas: %s", ex.message)
 
-            sys.exit()
+            return 0
 
         except ContractLogicError as ex:
             self.__logger.error(
                 "ContractLogicError when estimating gas: %s", ex.message)
 
-            sys.exit()
+            return 0
 
         self.__logger.debug("Estimated gas: %d", gas)
 

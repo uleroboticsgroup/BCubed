@@ -1,5 +1,5 @@
-# BCubed
-BCubed is a Python library designed to facilitate traceability in autonomous systems in a cibersecure manner. It allows the creation and utilization of a black box employing blockchain technology. The nomenclature of the system is derived from the term "blockchain-based black box.
+# BCubed (Blockchain-based Black Box)
+BCubed is a Python library designed to facilitate traceability in autonomous systems in a cibersecure manner. It allows the creation and utilization of a black box employing blockchain technology.
 
 ## :warning: Disclaimer
 This Python library has only been tested in simulated blockchain environments. Using it in other environments is at your own risk. Keep possible charges in mind.
@@ -22,6 +22,12 @@ $ source .venv/bin/activate
 ```
 (.venv) $ pip install -e <bcubed_location>
 ```
+
+### Configure BCubed
+
+1. Update the configuration data in the `bcubed-config.yaml` file.
+
+1. Configure the environment variable named BCUBED_CONF_FILE to set the `bcubed-config.yaml` path. By default, it is set to `./bcubed-config.yaml`.
 
 ### Uninstall BCubed
 ```

@@ -62,7 +62,8 @@ class Config(metaclass=SingletonMeta):
         self.__logger.info("%s is initialized.", __class__.__name__)
 
     def __read_configuration_file(self):
-        self.__conf_file = os.environ.get(BCUBED_CONF_FILE, "config.yaml")
+        self.__conf_file = os.environ.get(
+            BCUBED_CONF_FILE, "bcubed-config.yaml")
 
         if os.path.exists(self.__conf_file) is False:
             self.__logger.error(
